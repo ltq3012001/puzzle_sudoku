@@ -254,22 +254,22 @@ MonoBehaviour:
   IsIncorrect: 0
   _bgSprite: {fileID: 1792391421368802601}
   _valueText: {fileID: 4770548806479160480}
-  _startUnlockedCellColor: {r: 0.46274513, g: 0.46274513, b: 0.46274513, a: 1}
-  _startUnlockedTextColor: {r: 0, g: 0.9083636, b: 1, a: 1}
-  _startLockedCellColor: {r: 0.46274513, g: 0.46274513, b: 0.46274513, a: 1}
-  _startLockedTextColor: {r: 1, g: 1, b: 1, a: 1}
-  _highlightUnlockedCellColor: {r: 0.24528301, g: 0.24181202, b: 0.24181202, a: 1}
-  _highlightUnlockedTextColor: {r: 0, g: 0.909804, b: 1, a: 1}
-  _highlightLockedCellColor: {r: 0.24705884, g: 0.24313727, b: 0.24313727, a: 1}
-  _highlightLockedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  _startUnlockedCellColor: {r: 1, g: 1, b: 0.9294118, a: 1}
+  _startUnlockedTextColor: {r: 0.10980393, g: 0.13725491, b: 0.12941177, a: 1}
+  _startLockedCellColor: {r: 1, g: 1, b: 0.9294118, a: 1}
+  _startLockedTextColor: {r: 0.10980392, g: 0.13725491, b: 0.12941177, a: 1}
+  _highlightUnlockedCellColor: {r: 0.77254903, g: 0.94509804, b: 1, a: 1}
+  _highlightUnlockedTextColor: {r: 0.10980393, g: 0.13725491, b: 0.12941177, a: 1}
+  _highlightLockedCellColor: {r: 0.7725491, g: 0.9450981, b: 1, a: 1}
+  _highlightLockedTextColor: {r: 0.10980393, g: 0.13725491, b: 0.12941177, a: 1}
   _highlightWrongCellColor: {r: 1, g: 0.8349056, b: 0.8349056, a: 1}
   _highlightWrongTextColor: {r: 1, g: 0.1462264, b: 0.1462264, a: 1}
-  _selectedCellColor: {r: 0.122641504, g: 0.122641504, b: 0.122641504, a: 1}
-  _selectedTextColor: {r: 0, g: 0.909804, b: 1, a: 1}
+  _selectedCellColor: {r: 0.5568628, g: 0.827451, b: 0.9529412, a: 1}
+  _selectedTextColor: {r: 0.10980393, g: 0.13725491, b: 0.12941177, a: 1}
   _selectedWrongCellColor: {r: 1, g: 0.5990566, b: 0.5990566, a: 1}
   _selectedWrongTextColor: {r: 1, g: 0.14509805, b: 0.14509805, a: 1}
-  _resetCellColor: {r: 0.46274513, g: 0.46274513, b: 0.46274513, a: 1}
-  _resetTextColor: {r: 0, g: 0.909804, b: 1, a: 1}
+  _resetCellColor: {r: 1, g: 1, b: 0.9294118, a: 1}
+  _resetTextColor: {r: 0.10980393, g: 0.13725491, b: 0.12941177, a: 1}
   _resetWrongCellColor: {r: 1, g: 0.8352942, b: 0.8352942, a: 1}
   _resetWrongTextColor: {r: 1, g: 0.14509805, b: 0.14509805, a: 1}
 --- !u!1 &8128982410360533699
