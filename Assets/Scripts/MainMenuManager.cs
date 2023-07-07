@@ -124,25 +124,25 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnResumeButtonPressed()
     {
-        DataManager.SetNewPuzzleLevel(Generator.DifficultyLevel.RELOAD);
+        DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.RELOAD);
         StartCoroutine(LoadGameScene());
     }
 
     public void OnEasyGameButtonPressed()
     {
-        DataManager.SetNewPuzzleLevel(Generator.DifficultyLevel.EASY);
+        DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.EASY);
         StartCoroutine(LoadGameScene());
     }
 
     public void OnMediumGameButtonPressed()
     {
-        DataManager.SetNewPuzzleLevel(Generator.DifficultyLevel.MEDIUM);
+        DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.MEDIUM);
         StartCoroutine(LoadGameScene());
     }
 
     public void OnHardGameButtonPressed()
     {
-        DataManager.SetNewPuzzleLevel(Generator.DifficultyLevel.HARD);
+        DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.HARD);
         StartCoroutine(LoadGameScene());
     }
     //Top bar

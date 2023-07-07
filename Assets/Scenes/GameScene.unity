@@ -1993,6 +1993,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82c2a8e1f4294484485f3de8112adf8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _themeColor: {fileID: 11400000, guid: 129750eacfb518b48af459aa257d0237, type: 2}
   _sceneTransitionAnimator: {fileID: 77227043}
   _startPos: {x: -9.4, y: 0.6, z: 0}
   _offsetX: 9.4
@@ -2002,7 +2003,6 @@ MonoBehaviour:
   _lifeText: {fileID: 95830240}
   _difficultyText: {fileID: 570545897}
   selectedCell: {fileID: 0}
-  life: 0
 --- !u!4 &1356115688
 Transform:
   m_ObjectHideFlags: 0

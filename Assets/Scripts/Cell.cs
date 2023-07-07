@@ -4,124 +4,105 @@ using UnityEngine;
 
 public class Cell : MonoBehaviour
 {
+    [SerializeField] private SpriteRenderer _bgSprite;
+    [SerializeField] private TMPro.TMP_Text _valueText;
+
+    private ThemeColor _themeColor;
+
     public int Value;
     public int Row;
     public int Col;
     public bool IsLocked;
     public bool IsIncorrect;
 
-    //   
-
-    [SerializeField] private SpriteRenderer _bgSprite;
-    [SerializeField] private TMPro.TMP_Text _valueText;
-
-    [Header("Color")]
-    [Space]
-    [Header("Start Color")]
-
-    [SerializeField] private Color _startUnlockedCellColor;
-    [SerializeField] private Color _startUnlockedTextColor;
-    [SerializeField] private Color _startLockedCellColor;
-    [SerializeField] private Color _startLockedTextColor;
-
-    [Header("Highlight Color")]
-
-    [SerializeField] private Color _highlightUnlockedCellColor;
-    [SerializeField] private Color _highlightUnlockedTextColor;
-    [SerializeField] private Color _highlightLockedCellColor;
-    [SerializeField] private Color _highlightLockedTextColor;
-    [SerializeField] private Color _highlightWrongCellColor;
-    [SerializeField] private Color _highlightWrongTextColor;
-
-    [Header("Selected Color")]
-
-    [SerializeField] private Color _selectedCellColor;
-    [SerializeField] private Color _selectedTextColor;
-    [SerializeField] private Color _selectedWrongCellColor;
-    [SerializeField] private Color _selectedWrongTextColor;
-
-    [Header("Reset Color")]
-
-    [SerializeField] private Color _resetCellColor;
-    [SerializeField] private Color _resetTextColor;
-    [SerializeField] private Color _resetWrongCellColor;
-    [SerializeField] private Color _resetWrongTextColor;
-
-    public void Init(int value)
+    public void Init(int value, ThemeColor themeColor)
     {
+        _themeColor = themeColor;
         IsIncorrect = false;
         Value = value;
-
-        if(value == 0)
+        _bgSprite.color = _themeColor.CorrectCellColor;
+        if (value == 0)
         {
             IsLocked = false;
-            _bgSprite.color = _startUnlockedCellColor;
-            _valueText.color = _startUnlockedTextColor;
+            _valueText.color = _themeColor.UnlockedTextColor;
             _valueText.text = "";
         }
         else
         {
             IsLocked = true;
-            _bgSprite.color = _startLockedCellColor;
-            _valueText.color = _startLockedTextColor;
+            _valueText.color = _themeColor.LockedTextColor;
+            _valueText.text = Value.ToString();
+        }
+    }
+
+    public void Init(int value, bool isIncorrect, bool isLocked, ThemeColor themeColor)
+    {
+        _themeColor = themeColor;
+        Value = value;
+        IsIncorrect = isIncorrect;
+        IsLocked = isLocked;
+
+        if (value == 0)
+        {
+            IsLocked = false;
+            _bgSprite.color = _themeColor.CorrectCellColor;
+            _valueText.color = _themeColor.UnlockedTextColor;
+            _valueText.text = "";
+        }
+        else
+        {
+            Reset();
             _valueText.text = Value.ToString();
         }
     }
 
     public void Highlight()
     {
-        if (IsLocked)
-        {
-            _bgSprite.color = _highlightLockedCellColor;
-            _valueText.color = _highlightLockedTextColor;
-        }
-        else
-        {
-            if(IsIncorrect)
-            {
-                _bgSprite.color= _highlightWrongCellColor;
-                _valueText.color= _highlightWrongTextColor;
-            }
-            else
-            {
-                _bgSprite.color = _highlightUnlockedCellColor;
-                _valueText.color = _highlightUnlockedTextColor;
-            }
-        }
+        _bgSprite.color = _themeColor.HighlightColor;
+        ResetTextColor();
     }
 
     public void Select()
     {
-        if(!IsIncorrect)
+        if (IsIncorrect)
         {
-            _bgSprite.color=_selectedCellColor;
-            _valueText.color= _selectedTextColor;
+            _bgSprite.color = _themeColor.SelectedWrongCellColor;
         }
         else
         {
-            _bgSprite.color = _selectedWrongCellColor;
-            _valueText.color = _selectedWrongTextColor;
+            _bgSprite.color = _themeColor.SelectedCorrectCellColor;
         }
+        ResetTextColor();
     }
 
     public void Reset()
     {
-        if (IsLocked)
+        if (IsIncorrect)
         {
-            _bgSprite.color = _startLockedCellColor;
-            _valueText.color = _startLockedTextColor;
+            _bgSprite.color = _themeColor.WrongCellColor;
         }
         else
         {
-            if (IsIncorrect)
+            _bgSprite.color = _themeColor.CorrectCellColor;
+        }
+        ResetTextColor();
+    }
+
+    private void ResetTextColor()
+    {
+        if (IsIncorrect)
+        {
+            _valueText.color = _themeColor.WrongTextColor;
+        }
+        else
+        {
+            if (IsLocked)
             {
-                _bgSprite.color = _resetWrongCellColor;
-                _valueText.color = _resetWrongTextColor;
+                _valueText.color = _themeColor.LockedTextColor;
             }
             else
             {
-                _bgSprite.color = _resetCellColor;
-                _valueText.color = _resetTextColor;
+                _valueText.color = _themeColor.UnlockedTextColor;
             }
         }
     }
@@ -134,7 +115,7 @@ public class Cell : MonoBehaviour
 
     public void UpdateWin()
     {
-        _bgSprite.color = _startLockedCellColor;
-        _valueText.color = _startLockedTextColor;
+        _bgSprite.color = _themeColor.CorrectCellColor;
+        _valueText.color = _themeColor.LockedTextColor;
     }
 }

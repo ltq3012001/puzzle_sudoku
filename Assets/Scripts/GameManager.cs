@@ -3,12 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 using TMPro;
+using Unity.Burst.CompilerServices;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private ThemeColor _themeColor;
+
     [SerializeField] private Animator _sceneTransitionAnimator;
 
     [SerializeField] private Vector3 _startPos;
@@ -28,7 +31,9 @@ public class GameManager : MonoBehaviour
     private const int SUBGRID_SIZE = 3;
 
     private float timer;
-    [SerializeField] private int life;
+    private int life;
+    private int hintRemain;
+    private int adTimer;
     private Generator.DifficultyLevel difficulty;
 
 
@@ -64,19 +69,18 @@ public class GameManager : MonoBehaviour
     }
     private void SpawnCell(Generator.DifficultyLevel difficultyLevel)
     {
-        int[,] puzzleGrid = new int[GRID_SIZE, GRID_SIZE];
-
-        if (difficultyLevel!= Generator.DifficultyLevel.RELOAD)
+        if (difficultyLevel != Generator.DifficultyLevel.RELOAD)
         {
-            CreateAndStoreLevel(puzzleGrid, difficultyLevel);
+            CreateNewLevel(difficultyLevel);
         }
         else
         {
-            GetCurrentLevel(puzzleGrid);
+            GetCurrentLevel();
         }
-
-        _difficultyText.text = difficulty.ToString();
-        _lifeText.text = string.Format("{0} / 3", life);
+    }
+    private void CreateNewLevel(Generator.DifficultyLevel level)
+    {
+        int[,] tempGrid = Generator.GeneratePuzzle(level);
         for (int i = 0; i < GRID_SIZE; i++)
         {
             Vector3 spawnPos = _startPos + i % 3 * _offsetX * Vector3.right + i / 3 * _offsetY * Vector3.up;
@@ -88,45 +92,52 @@ public class GameManager : MonoBehaviour
             {
                 subGridCells[j].Row = startRow + j / 3;
                 subGridCells[j].Col = startCol + j % 3;
-                int cellValue = puzzleGrid[subGridCells[j].Row, subGridCells[j].Col];
-                subGridCells[j].Init(cellValue);
+                int cellValue = tempGrid[subGridCells[j].Row, subGridCells[j].Col];
+                subGridCells[j].Init(cellValue, _themeColor);
+                cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
+                PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), subGridCells[j].Value);
+            }
+        }
+        life = 3;
+        timer = 0;
+        adTimer = 0;
+        hintRemain = 1;
+        difficulty = level;
+        PlayerPrefs.SetString("Difficulty", level.ToString());
+        PlayerPrefs.SetInt("Life", life);
+        PlayerPrefs.SetInt("HintRemain", hintRemain);
+    }
+    private void GetCurrentLevel()
+    {
+        for (int i = 0; i < GRID_SIZE; i++)
+        {
+            Vector3 spawnPos = _startPos + i % 3 * _offsetX * Vector3.right + i / 3 * _offsetY * Vector3.up;
+            SubGrid subGrid = Instantiate(_subGridPrefabs, spawnPos, Quaternion.identity);
+            List<Cell> subGridCells = subGrid.cells;
+            int startRow = (i / 3) * 3;
+            int startCol = (i % 3) * 3;
+            for (int j = 0; j < GRID_SIZE; j++)
+            {
+                subGridCells[j].Row = startRow + j / 3;
+                subGridCells[j].Col = startCol + j % 3;
+                int cellValue = PlayerPrefs.GetInt(string.Format("Value [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
+                int cellIsIncorrect = PlayerPrefs.GetInt(string.Format("IsIncorrect [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
+                int cellIsLocked = PlayerPrefs.GetInt(string.Format("IsLocked [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
+                subGridCells[j].Init(cellValue, Convert.ToBoolean(cellIsIncorrect), Convert.ToBoolean(cellIsLocked), _themeColor);
                 cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
             }
         }
-    }
-    private void CreateAndStoreLevel(int[,] grid, Generator.DifficultyLevel level)
-    {
-        int[,] tempGrid = Generator.GeneratePuzzle(level);
-        string arrayString = "";
-        for (int i = 0; i < GRID_SIZE; i++)
-        {
-            for (int j = 0; j < GRID_SIZE; j++)
-            {
-                arrayString += tempGrid[i, j].ToString() + ",";
-                grid[i, j] = tempGrid[i, j];
-            }
-        }
-
-        arrayString = arrayString.TrimEnd(',');
-        PlayerPrefs.SetString("Level", level.ToString());
-        PlayerPrefs.SetString("Grid", arrayString);
-        life = 3;
-        difficulty = level;
-    }
-    private void GetCurrentLevel(int[,] grid)
-    {
-        string arrayString = PlayerPrefs.GetString("Grid");
-        string[] arrayValue = arrayString.Split(",");
-        int index = 0;
-        for (int i = 0; i < GRID_SIZE; i++)
-        {
-            for (int j = 0; j < GRID_SIZE; j++)
-            {
-                grid[i, j] = int.Parse(arrayValue[index]);
-                index++;
-            }
-        }
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Level"), out difficulty);
+        life = PlayerPrefs.GetInt("Life");
+        hintRemain = PlayerPrefs.GetInt("HintRemain");
+        timer = PlayerPrefs.GetFloat("Timer");
+        ShowUIValue();
+    }
+
+    private void ShowUIValue()
+    {
+        _difficultyText.text = difficulty.ToString();
+        _lifeText.text = string.Format("{0} / 3", life);
     }
     private void ResetGrid()
     {
@@ -145,6 +156,10 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < GRID_SIZE; j++)
             {
+                if(cells[i, j].Value != 0 && cells[i,j].Value == selectedCell.Value)
+                {
+                    cells[i, j].Highlight();
+                }
                 cells[i, j].IsIncorrect = !IsValid(cells[i, j], cells);
             }
         }
@@ -218,12 +233,11 @@ public class GameManager : MonoBehaviour
                 cells[i, j].UpdateWin();
             }
         }
-        Invoke("GoToNextLevel", 2f);
     }
 
     private void DecreaseLife()
     {
-        if(life==1)
+        if (life == 1)
         {
             GameOver();
             return;
@@ -242,12 +256,33 @@ public class GameManager : MonoBehaviour
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
 
+    private void SaveCurrentGameStatus()
+    {
+        for (int i = 0; i < GRID_SIZE; i++)
+        {
+            int startRow = (i / 3) * 3;
+            int startCol = (i % 3) * 3;
+            for (int j = 0; j < GRID_SIZE; j++)
+            {
+                int row = startRow + j / 3;
+                int col = startCol + j % 3;
+                Cell cell = cells[row, col];
+                PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", cell.Row, cell.Col), cell.Value);
+                PlayerPrefs.SetInt(string.Format("IsIncorrect [{0}],[{1}]", cell.Row, cell.Col), cell.IsIncorrect.GetHashCode());
+                PlayerPrefs.SetInt(string.Format("IsLocked [{0}],[{1}]", cell.Row, cell.Col), cell.IsLocked.GetHashCode());
+            }
+        }
+        PlayerPrefs.SetInt("Life", life);
+        PlayerPrefs.SetInt("HintRemain", hintRemain);
+        PlayerPrefs.SetFloat("Timer", timer);
+    }
+
     public void UpdateCellValue(int value)
     {
         if (hasGameFinished || selectedCell == null) return;
         if (!selectedCell.IsLocked)
         {
-            if(selectedCell.Value == value) return;
+            if (selectedCell.Value == value) return;
             selectedCell.UpdateValue(value);
             Highlight();
             if (!IsValid(selectedCell, cells))
@@ -259,8 +294,11 @@ public class GameManager : MonoBehaviour
     }
     public void ExitGame()
     {
+        SaveCurrentGameStatus();
         StartCoroutine(LoadMainMenuScene());
     }
+
+
     IEnumerator LoadMainMenuScene()
     {
         _sceneTransitionAnimator.SetTrigger("LoadScene");

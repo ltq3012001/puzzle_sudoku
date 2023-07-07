@@ -62,6 +62,7 @@
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\MainMenuManager.cs" />
     <Compile Include="Assets\Scripts\Solver.cs" />
+    <Compile Include="Assets\Scripts\ThemeColor.cs" />
     <Compile Include="Assets\Scripts\Cell.cs" />
     <Compile Include="Assets\Scripts\SubGrid.cs" />
     <Compile Include="Assets\Scripts\DataManager.cs" />
