@@ -20,7 +20,7 @@ public class Cell : MonoBehaviour
         _themeColor = themeColor;
         IsIncorrect = false;
         Value = value;
-        _bgSprite.color = _themeColor.CorrectCellColor;
+        _bgSprite.color = _themeColor.CellColor;
         if (value == 0)
         {
             IsLocked = false;
@@ -41,11 +41,11 @@ public class Cell : MonoBehaviour
         Value = value;
         IsIncorrect = isIncorrect;
         IsLocked = isLocked;
+        _bgSprite.color = _themeColor.CellColor;
 
         if (value == 0)
         {
             IsLocked = false;
-            _bgSprite.color = _themeColor.CorrectCellColor;
             _valueText.color = _themeColor.UnlockedTextColor;
             _valueText.text = "";
         }
@@ -58,20 +58,20 @@ public class Cell : MonoBehaviour
 
     public void Highlight()
     {
-        _bgSprite.color = _themeColor.HighlightColor;
+        if(IsIncorrect)
+        {
+            _bgSprite.color = _themeColor.WrongCellColor;
+        }
+        else
+        {
+            _bgSprite.color = _themeColor.HighlightCorrectCellColor;
+        }
         ResetTextColor();
     }
 
     public void Select()
     {
-        if (IsIncorrect)
-        {
-            _bgSprite.color = _themeColor.SelectedWrongCellColor;
-        }
-        else
-        {
-            _bgSprite.color = _themeColor.SelectedCorrectCellColor;
-        }
+        _bgSprite.color = _themeColor.SelectedCellColor;
         ResetTextColor();
     }
 
@@ -83,22 +83,22 @@ public class Cell : MonoBehaviour
         }
         else
         {
-            _bgSprite.color = _themeColor.CorrectCellColor;
+            _bgSprite.color = _themeColor.CellColor;
         }
         ResetTextColor();
     }
 
     private void ResetTextColor()
     {
-        if (IsIncorrect)
+        if (IsLocked)
         {
-            _valueText.color = _themeColor.WrongTextColor;
+            _valueText.color = _themeColor.LockedTextColor;
         }
         else
         {
-            if (IsLocked)
+            if (IsIncorrect)
             {
-                _valueText.color = _themeColor.LockedTextColor;
+                _valueText.color = _themeColor.WrongTextColor;
             }
             else
             {
@@ -115,7 +115,7 @@ public class Cell : MonoBehaviour
 
     public void UpdateWin()
     {
-        _bgSprite.color = _themeColor.CorrectCellColor;
+        _bgSprite.color = _themeColor.CellColor;
         _valueText.color = _themeColor.LockedTextColor;
     }
 }

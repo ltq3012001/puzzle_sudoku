@@ -277,6 +277,16 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetFloat("Timer", timer);
     }
 
+    public void EraseCellValue()
+    {
+        if (hasGameFinished || selectedCell == null) return;
+        if (!selectedCell.IsLocked)
+        {
+            if (selectedCell.Value == 0) return;
+            selectedCell.UpdateValue(0);
+            Highlight();
+        }
+    }
     public void UpdateCellValue(int value)
     {
         if (hasGameFinished || selectedCell == null) return;
@@ -297,7 +307,6 @@ public class GameManager : MonoBehaviour
         SaveCurrentGameStatus();
         StartCoroutine(LoadMainMenuScene());
     }
-
 
     IEnumerator LoadMainMenuScene()
     {

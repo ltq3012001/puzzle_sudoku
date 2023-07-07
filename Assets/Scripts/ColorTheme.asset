@@ -12,10 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53393feb85e406d45b791f447b3bdd66, type: 3}
   m_Name: ColorTheme
   m_EditorClassIdentifier: 
-  CorrectCellColor: {r: 0.997099, g: 1, b: 0.9764151, a: 1}
-  WrongCellColor: {r: 1, g: 0.5424528, b: 0.5481016, a: 1}
-  SelectedCorrectCellColor: {r: 0.1462264, g: 0.75017816, b: 1, a: 1}
-  SelectedWrongCellColor: {r: 1, g: 0.33490568, b: 0.34627458, a: 1}
+  CellColor: {r: 1, g: 1, b: 1, a: 1}
+  SelectedCellColor: {r: 0.28862584, g: 0.68504393, b: 0.8867924, a: 1}
   HighlightColor: {r: 0.72156864, g: 1, b: 1, a: 1}
   LockedTextColor: {r: 0, g: 0, b: 0, a: 1}
   UnlockedTextColor: {r: 0, g: 0.43921572, b: 0.6627451, a: 1}

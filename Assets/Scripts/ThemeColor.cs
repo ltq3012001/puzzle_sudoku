@@ -7,11 +7,10 @@ using UnityEngine;
 public class ThemeColor : ScriptableObject
 {
     //CellColor
-    public Color CorrectCellColor;
+    public Color CellColor;
+    public Color SelectedCellColor;
+    public Color HighlightCorrectCellColor;
     public Color WrongCellColor;
-    public Color SelectedCorrectCellColor;
-    public Color SelectedWrongCellColor;
-    public Color HighlightColor;
 
     //TextColor
     public Color LockedTextColor;
