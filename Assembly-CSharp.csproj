@@ -59,11 +59,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Generator.cs" />
+    <Compile Include="Assets\Scripts\IPopup.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\MainMenuManager.cs" />
     <Compile Include="Assets\Scripts\Solver.cs" />
+    <Compile Include="Assets\Scripts\GameOverPopup.cs" />
     <Compile Include="Assets\Scripts\ThemeColor.cs" />
     <Compile Include="Assets\Scripts\Cell.cs" />
+    <Compile Include="Assets\Scripts\Popup.cs" />
     <Compile Include="Assets\Scripts\SubGrid.cs" />
     <Compile Include="Assets\Scripts\DataManager.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />

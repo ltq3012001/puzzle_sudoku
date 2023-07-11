@@ -5,8 +5,10 @@ using System.Net.Http.Headers;
 using TMPro;
 using Unity.Burst.CompilerServices;
 using Unity.Mathematics;
+using UnityEditor.Presets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,9 +25,28 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text _lifeText;
     [SerializeField] private TMP_Text _difficultyText;
 
+    //Note
+    [SerializeField] private TMP_Text _noteModeNotiText;
+    [SerializeField] private Image _noteModeImg;
+    private bool isNoteMode;
+
+    //Hint
+    [SerializeField] private TMP_Text _hintNotiText;
+
+    //Undo
+    [SerializeField] private Image _undoButtonImg;
+
+    [SerializeField] private GameObject _gameOverPopupPrefabs;
+    [SerializeField] private GameObject _canvas;
+
+    private GameObject currentPopup;
+
     private bool hasGameFinished;
     private Cell[,] cells;
     [SerializeField] private Cell selectedCell;
+    private List<Cell> lastUpdatedCell;
+    private List<int> lastUpdatedCellValue;
+
 
     private const int GRID_SIZE = 9;
     private const int SUBGRID_SIZE = 3;
@@ -34,14 +55,11 @@ public class GameManager : MonoBehaviour
     private int life;
     private int hintRemain;
     private int adTimer;
-    private Generator.DifficultyLevel difficulty;
+    [SerializeField] private Generator.DifficultyLevel difficulty;
 
 
     private void Start()
     {
-        hasGameFinished = false;
-        cells = new Cell[GRID_SIZE, GRID_SIZE];
-        selectedCell = null;
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("NewPuzzleLevel"), out difficulty);
         SpawnCell(difficulty);
     }
@@ -69,13 +87,23 @@ public class GameManager : MonoBehaviour
     }
     private void SpawnCell(Generator.DifficultyLevel difficultyLevel)
     {
-        if (difficultyLevel != Generator.DifficultyLevel.RELOAD)
+        hasGameFinished = false;
+        cells = new Cell[GRID_SIZE, GRID_SIZE];
+        selectedCell = null;
+        lastUpdatedCell = null;
+        lastUpdatedCellValue = new List<int>();
+        lastUpdatedCell = new List<Cell>();
+        if (difficultyLevel == Generator.DifficultyLevel.RELOAD)
         {
-            CreateNewLevel(difficultyLevel);
+            GetCurrentLevel();
+        }
+        else if (difficultyLevel == Generator.DifficultyLevel.RESTART)
+        {
+            RestartCurrentLevel();
         }
         else
         {
-            GetCurrentLevel();
+            CreateNewLevel(difficultyLevel);
         }
     }
     private void CreateNewLevel(Generator.DifficultyLevel level)
@@ -96,6 +124,7 @@ public class GameManager : MonoBehaviour
                 subGridCells[j].Init(cellValue, _themeColor);
                 cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
                 PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), subGridCells[j].Value);
+                PlayerPrefs.SetInt(string.Format("New Puzzle [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), subGridCells[j].Value);
             }
         }
         life = 3;
@@ -106,7 +135,71 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetString("Difficulty", level.ToString());
         PlayerPrefs.SetInt("Life", life);
         PlayerPrefs.SetInt("HintRemain", hintRemain);
+        PlayerPrefs.SetInt("SelectedCellRow", -1);
+        PlayerPrefs.SetInt("SelectedCellCol", -1);
+        int listCount = PlayerPrefs.GetInt("LastUpdateCellCount", -1);
+        if (listCount != -1)
+        {
+            for (int i = 0; i < listCount; i++)
+            {
+                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellRow_{0}", i));
+                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellCol_{0}", i));
+                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellValue_{0}", i));
+            }
+            PlayerPrefs.DeleteKey("LastUpdateCellCount");
+        }
+        ShowUIValue();
     }
+
+    private void RestartCurrentLevel()
+    {
+
+        hasGameFinished = false;
+        cells = new Cell[GRID_SIZE, GRID_SIZE];
+        selectedCell = null;
+        lastUpdatedCell = null;
+        lastUpdatedCellValue = new List<int>();
+        lastUpdatedCell = new List<Cell>();
+        for (int i = 0; i < GRID_SIZE; i++)
+        {
+            Vector3 spawnPos = _startPos + i % 3 * _offsetX * Vector3.right + i / 3 * _offsetY * Vector3.up;
+            SubGrid subGrid = Instantiate(_subGridPrefabs, spawnPos, Quaternion.identity);
+            List<Cell> subGridCells = subGrid.cells;
+            int startRow = (i / 3) * 3;
+            int startCol = (i % 3) * 3;
+            for (int j = 0; j < GRID_SIZE; j++)
+            {
+                subGridCells[j].Row = startRow + j / 3;
+                subGridCells[j].Col = startCol + j % 3;
+                int cellValue = PlayerPrefs.GetInt(string.Format("New Puzzle [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
+                subGridCells[j].Init(cellValue, _themeColor);
+                cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
+                PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), subGridCells[j].Value);
+            }
+        }
+        life = 3;
+        timer = 0;
+        adTimer = 0;
+        hintRemain = 1;
+
+        PlayerPrefs.SetInt("Life", life);
+        PlayerPrefs.SetInt("HintRemain", hintRemain);
+        PlayerPrefs.SetInt("SelectedCellRow", -1);
+        PlayerPrefs.SetInt("SelectedCellCol", -1);
+        int listCount = PlayerPrefs.GetInt("LastUpdateCellCount", -1);
+        if (listCount != -1)
+        {
+            for (int i = 0; i < listCount; i++)
+            {
+                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellRow_{0}", i));
+                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellCol_{0}", i));
+                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellValue_{0}", i));
+            }
+            PlayerPrefs.DeleteKey("LastUpdateCellCount");
+        }
+        ShowUIValue();
+    }
+
     private void GetCurrentLevel()
     {
         for (int i = 0; i < GRID_SIZE; i++)
@@ -123,21 +216,120 @@ public class GameManager : MonoBehaviour
                 int cellValue = PlayerPrefs.GetInt(string.Format("Value [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
                 int cellIsIncorrect = PlayerPrefs.GetInt(string.Format("IsIncorrect [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
                 int cellIsLocked = PlayerPrefs.GetInt(string.Format("IsLocked [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
-                subGridCells[j].Init(cellValue, Convert.ToBoolean(cellIsIncorrect), Convert.ToBoolean(cellIsLocked), _themeColor);
+
+                List<int> noteList = new List<int>();
+                int listCount = PlayerPrefs.GetInt(string.Format("NoteValueCount [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), 0);
+                if (listCount > 0)
+                {
+                    for (int count = 0; count < listCount; count++)
+                    {
+                        noteList.Add(PlayerPrefs.GetInt(string.Format("NoteValue [{0}],[{1}]_{2}", subGridCells[j].Row, subGridCells[j].Col, count)));
+                    }
+                }
+                subGridCells[j].Init(cellValue, Convert.ToBoolean(cellIsIncorrect), Convert.ToBoolean(cellIsLocked), noteList, _themeColor);
                 cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
+            }
+        }
+        int selectedCellRow = PlayerPrefs.GetInt("SelectedCellRow", -1);
+        int selectedCellCol = PlayerPrefs.GetInt("SelectedCellCol", -1);
+
+        bool isReset = false;
+        int lastUpdateCellCount = PlayerPrefs.GetInt("LastUpdatedCellCount", -1);
+        if (lastUpdateCellCount != -1)
+        {
+            for (int count = 0; count < lastUpdateCellCount; count++)
+            {
+                int lastUpdateCellRow = PlayerPrefs.GetInt(string.Format("LastUpdatedCellRow_{0}", count), -1);
+                int lastUpdateCellCol = PlayerPrefs.GetInt(string.Format("LastUpdatedCellCol_{0}", count), -1);
+                if (lastUpdateCellRow != -1 && lastUpdateCellCol != -1)
+                {
+                    lastUpdatedCell.Add(cells[lastUpdateCellRow, lastUpdateCellCol]);
+                    lastUpdatedCellValue.Add(PlayerPrefs.GetInt(string.Format("LastUpdatedCellValue_{0}", count), 0));
+                }
             }
         }
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Level"), out difficulty);
         life = PlayerPrefs.GetInt("Life");
         hintRemain = PlayerPrefs.GetInt("HintRemain");
         timer = PlayerPrefs.GetFloat("Timer");
+        if (isReset)
+        {
+            ResetGrid();
+            Highlight();
+        }
         ShowUIValue();
+    }
+
+    private void SaveCurrentGameStatus()
+    {
+        for (int i = 0; i < GRID_SIZE; i++)
+        {
+            int startRow = (i / 3) * 3;
+            int startCol = (i % 3) * 3;
+            for (int j = 0; j < GRID_SIZE; j++)
+            {
+                int row = startRow + j / 3;
+                int col = startCol + j % 3;
+                Cell cell = cells[row, col];
+                PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", cell.Row, cell.Col), cell.Value);
+                PlayerPrefs.SetInt(string.Format("IsIncorrect [{0}],[{1}]", cell.Row, cell.Col), cell.IsIncorrect.GetHashCode());
+                PlayerPrefs.SetInt(string.Format("IsLocked [{0}],[{1}]", cell.Row, cell.Col), cell.IsLocked.GetHashCode());
+                List<int> noteValues = new List<int>(cell.GetNoteValue());
+                if (noteValues.Count > 0)
+                {
+                    PlayerPrefs.SetInt(string.Format("NoteValueCount [{0}],[{1}]", cell.Row, cell.Col), noteValues.Count);
+                    for (int count = 0; count < noteValues.Count; count++)
+                    {
+                        PlayerPrefs.SetInt(string.Format("NoteValue [{0}],[{1}]_{2}", cell.Row, cell.Col, count), noteValues[count]);
+                    }
+                }
+            }
+        }
+        PlayerPrefs.SetInt("Life", life);
+        PlayerPrefs.SetInt("HintRemain", hintRemain);
+        PlayerPrefs.SetFloat("Timer", timer);
+        if (lastUpdatedCell != null)
+        {
+            int listCount = lastUpdatedCell.Count;
+            PlayerPrefs.SetInt("LastUpdatedCellCount", listCount);
+            for (int i = 0; i < listCount; i++)
+            {
+                PlayerPrefs.SetInt(string.Format("LastUpdatedCellRow_{0}", i), lastUpdatedCell[i].Row);
+                PlayerPrefs.SetInt(string.Format("LastUpdatedCellCol_{0}", i), lastUpdatedCell[i].Col);
+                PlayerPrefs.SetInt(string.Format("LastUpdatedCellValue_{0}", i), lastUpdatedCellValue[i]);
+            }
+        }
+        if (selectedCell != null)
+        {
+            PlayerPrefs.SetInt("SelectedCellRow", selectedCell.Row);
+            PlayerPrefs.SetInt("SelectedCellCol", selectedCell.Col);
+        }
     }
 
     private void ShowUIValue()
     {
         _difficultyText.text = difficulty.ToString();
         _lifeText.text = string.Format("{0} / 3", life);
+        if (isNoteMode)
+        {
+            _noteModeImg.color = _themeColor.NotiBoxColor;
+            _noteModeNotiText.color = _themeColor.NotiBoxColor;
+            _noteModeNotiText.text = "ON";
+        }
+        else
+        {
+            _noteModeImg.color = _themeColor.DisableNotiColor;
+            _noteModeNotiText.color = _themeColor.DisableNotiColor;
+            _noteModeNotiText.text = "OFF";
+        }
+        if (hintRemain > 0)
+        {
+            _hintNotiText.text = hintRemain.ToString();
+        }
+        else
+        {
+            _hintNotiText.text = "AD";
+        }
     }
     private void ResetGrid()
     {
@@ -156,7 +348,7 @@ public class GameManager : MonoBehaviour
         {
             for (int j = 0; j < GRID_SIZE; j++)
             {
-                if(cells[i, j].Value != 0 && cells[i,j].Value == selectedCell.Value)
+                if (cells[i, j].Value != 0 && cells[i, j].Value == selectedCell.Value)
                 {
                     cells[i, j].Highlight();
                 }
@@ -237,44 +429,62 @@ public class GameManager : MonoBehaviour
 
     private void DecreaseLife()
     {
-        if (life == 1)
+        life--;
+        if (life == 0)
         {
             GameOver();
-            return;
-        }
-        life--;
-        _lifeText.text = string.Format("{0} / 3", life);
+        }        
     }
 
     private void GameOver()
     {
-        Debug.Log("GameOver");
+        Debug.Log("Gameover");
+        ShowUIValue();
+        Generator.DifficultyLevel level = Generator.DifficultyLevel.EASY;
+        Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Difficulty"), out difficulty);
+
+        currentPopup = GameObject.Instantiate(_gameOverPopupPrefabs, _canvas.transform);
+        currentPopup.GetComponent<GameOverPopup>().Initialized(this, difficulty);
     }
 
-    private void RestartGame()
+    private void DeleteLastUpdateCellKey()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        int lastIndex = lastUpdatedCellValue.Count - 1;
+        lastUpdatedCell.RemoveAt(lastIndex);
+        lastUpdatedCellValue.RemoveAt(lastIndex);
+
+        PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellRow_{0}", lastIndex));
+        PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellCol_{0}", lastIndex));
+        PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellValue_{0}", lastIndex));
+
+        PlayerPrefs.SetInt("LastUpdatedCellCount", lastIndex - 1);
     }
 
-    private void SaveCurrentGameStatus()
+    private void UpdateCellValue(int value)
     {
-        for (int i = 0; i < GRID_SIZE; i++)
+        if (selectedCell.Value == value) return;
+        lastUpdatedCell.Add(selectedCell);
+        lastUpdatedCellValue.Add(selectedCell.Value);
+
+        selectedCell.UpdateValue(value);
+        Highlight();
+        if (!IsValid(selectedCell, cells))
         {
-            int startRow = (i / 3) * 3;
-            int startCol = (i % 3) * 3;
-            for (int j = 0; j < GRID_SIZE; j++)
-            {
-                int row = startRow + j / 3;
-                int col = startCol + j % 3;
-                Cell cell = cells[row, col];
-                PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", cell.Row, cell.Col), cell.Value);
-                PlayerPrefs.SetInt(string.Format("IsIncorrect [{0}],[{1}]", cell.Row, cell.Col), cell.IsIncorrect.GetHashCode());
-                PlayerPrefs.SetInt(string.Format("IsLocked [{0}],[{1}]", cell.Row, cell.Col), cell.IsLocked.GetHashCode());
-            }
+            DecreaseLife();
         }
-        PlayerPrefs.SetInt("Life", life);
-        PlayerPrefs.SetInt("HintRemain", hintRemain);
-        PlayerPrefs.SetFloat("Timer", timer);
+        CheckWin();
+        ShowUIValue();
+    }
+
+    private void UpdateNoteValue(int value)
+    {
+        selectedCell.UpdateNoteValue(value);
+    }
+
+    private IEnumerator ReloadCurrentScene()
+    {
+        yield return new WaitForSeconds(1f);
+        SceneManager.LoadScene(1);
     }
 
     public void EraseCellValue()
@@ -287,21 +497,121 @@ public class GameManager : MonoBehaviour
             Highlight();
         }
     }
-    public void UpdateCellValue(int value)
+
+    public void InputButtonPressed(int value)
     {
         if (hasGameFinished || selectedCell == null) return;
         if (!selectedCell.IsLocked)
         {
-            if (selectedCell.Value == value) return;
-            selectedCell.UpdateValue(value);
-            Highlight();
-            if (!IsValid(selectedCell, cells))
+            if (isNoteMode)
             {
-                DecreaseLife();
+                UpdateNoteValue(value);
             }
-            CheckWin();
+            else
+            {
+                UpdateCellValue(value);
+            }
         }
     }
+
+    public void HintButtonPressed()
+    {
+        if (hintRemain > 0)
+        {
+            if (hasGameFinished || selectedCell == null) return;
+            if (!selectedCell.IsLocked || selectedCell.IsIncorrect)
+            {
+                Cell tempCell = new Cell();
+                tempCell.Row = selectedCell.Row;
+                tempCell.Col = selectedCell.Col;
+                for (int i = 0; i < GRID_SIZE; i++)
+                {
+                    tempCell.Value = i;
+                    if (IsValid(tempCell, cells))
+                    {
+                        UpdateCellValue(i);
+                    }
+                }
+            }
+            hintRemain--;
+            ShowUIValue();
+        }
+    }
+
+    public void UndoButtonPressed()
+    {
+        if (hasGameFinished || selectedCell == null) return;
+        if (!selectedCell.IsLocked && lastUpdatedCell.Count > 0)
+        {
+            selectedCell = lastUpdatedCell[lastUpdatedCell.Count - 1];
+            selectedCell.UpdateValue(lastUpdatedCellValue[lastUpdatedCellValue.Count - 1]);
+            DeleteLastUpdateCellKey();
+            Highlight();
+        }
+    }
+
+    public void NoteModeButtonPressed()
+    {
+        isNoteMode = !isNoteMode;
+        ShowUIValue();
+    }
+
+    public void OnSecondChancePressed()
+    {
+        Debug.Log("OnSecondChancePressed");
+        life++;
+        Destroy(currentPopup);
+        currentPopup = null;
+        ShowUIValue();
+    }
+
+    public void OnRestartThisGamePressed()
+    {
+        Debug.Log("OnRestartThisGamePressed");
+        DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.RESTART);
+        Destroy(currentPopup);
+        currentPopup = null;
+        StartCoroutine(ReloadCurrentScene());
+    }
+
+    public void OnStartNewGamePressed()
+    {
+        Debug.Log("OnStartNewGamePressed");
+        Generator.DifficultyLevel level = currentPopup.GetComponent<GameOverPopup>().difficultyLevel;
+        Destroy(currentPopup);
+        currentPopup = null;
+        DataManager.SaveNewPuzzleLevel(level);
+        StartCoroutine(ReloadCurrentScene());
+    }
+
+    public void OnNextLevelPressed()
+    {
+        GameOverPopup popup = currentPopup.GetComponent<GameOverPopup>();
+        if (popup.difficultyLevel < Generator.DifficultyLevel.HARD)
+        {
+            popup.difficultyLevel++;
+        }
+        else
+        {
+            popup.difficultyLevel = Generator.DifficultyLevel.EASY;
+        }
+        popup.ReloadUIValue();
+    }
+
+    public void OnPreviousLevelPressed()
+    {
+        GameOverPopup popup = currentPopup.GetComponent<GameOverPopup>();
+        if (popup.difficultyLevel > Generator.DifficultyLevel.EASY)
+        {
+            popup.difficultyLevel--;
+        }
+        else
+        {
+            popup.difficultyLevel = Generator.DifficultyLevel.HARD;
+        }
+        popup.ReloadUIValue();
+    }
+
     public void ExitGame()
     {
         SaveCurrentGameStatus();

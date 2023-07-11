@@ -16,5 +16,12 @@ public class ThemeColor : ScriptableObject
     public Color LockedTextColor;
     public Color UnlockedTextColor;
     public Color WrongTextColor;
+    public Color NoteTextColor;
+    public Color HideNoteTextColor;
+
+    //ButtonColor
+    public Color NotiBackgroundColor;
+    public Color NotiBoxColor;
+    public Color DisableNotiColor;
 
 }

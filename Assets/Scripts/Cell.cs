@@ -1,14 +1,19 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Cell : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer _bgSprite;
     [SerializeField] private TMPro.TMP_Text _valueText;
+    [SerializeField] private TMPro.TMP_Text[] _noteValueText;
 
     private ThemeColor _themeColor;
 
+    private List<int> noteValues;
     public int Value;
     public int Row;
     public int Col;
@@ -20,6 +25,7 @@ public class Cell : MonoBehaviour
         _themeColor = themeColor;
         IsIncorrect = false;
         Value = value;
+        noteValues = new List<int>();
         _bgSprite.color = _themeColor.CellColor;
         if (value == 0)
         {
@@ -35,19 +41,26 @@ public class Cell : MonoBehaviour
         }
     }
 
-    public void Init(int value, bool isIncorrect, bool isLocked, ThemeColor themeColor)
+    public void Init(int value, bool isIncorrect, bool isLocked, List<int> noteValueList, ThemeColor themeColor)
     {
         _themeColor = themeColor;
         Value = value;
         IsIncorrect = isIncorrect;
         IsLocked = isLocked;
         _bgSprite.color = _themeColor.CellColor;
-
+        noteValues = new List<int>(noteValueList);
         if (value == 0)
         {
             IsLocked = false;
             _valueText.color = _themeColor.UnlockedTextColor;
             _valueText.text = "";
+            if (noteValues.Count > 0)
+            {
+                foreach (int noteValue in noteValues.ToList())
+                {
+                    ShowNoteValue(noteValue);
+                }
+            }
         }
         else
         {
@@ -58,7 +71,7 @@ public class Cell : MonoBehaviour
 
     public void Highlight()
     {
-        if(IsIncorrect)
+        if (IsIncorrect)
         {
             _bgSprite.color = _themeColor.WrongCellColor;
         }
@@ -107,15 +120,67 @@ public class Cell : MonoBehaviour
         }
     }
 
+    private void ShowNoteValue(int value)
+    {
+        
+        _noteValueText[value - 1].color= _themeColor.NoteTextColor;
+    }
+
+    private void HideNoteValue(int value)
+    {
+        
+        _noteValueText[value - 1].color = _themeColor.HideNoteTextColor;
+    }
+
     public void UpdateValue(int value)
     {
         Value = value;
-        _valueText.text = Value == 0 ? "" : Value.ToString();
+        if(Value != 0)
+        {
+            _valueText.text = Value.ToString();
+            if(noteValues.Count> 0)
+            {
+                foreach (int noteValue in noteValues.ToString())
+                {
+                    HideNoteValue(noteValue);
+                }
+            }
+        }
+        else
+        {
+            _valueText.text = "";
+            if (noteValues.Count > 0)
+            {
+                foreach (int noteValue in noteValues.ToString())
+                {
+                    ShowNoteValue(noteValue);
+                }
+            }
+        }
+    }
+
+    public void UpdateNoteValue(int value)
+    {
+        if (noteValues.Contains(value))
+        {
+            noteValues.Remove(value);
+            HideNoteValue(value);
+        }
+        else
+        {
+            noteValues.Add(value);
+            ShowNoteValue(value);
+        }
     }
 
     public void UpdateWin()
     {
         _bgSprite.color = _themeColor.CellColor;
         _valueText.color = _themeColor.LockedTextColor;
+    }
+
+    public List<int> GetNoteValue()
+    {
+        return noteValues;
     }
 }

@@ -6,10 +6,11 @@ public class Generator
 {
     public enum DifficultyLevel
     {
-        RELOAD,
-        EASY,
-        MEDIUM,
-        HARD
+        RELOAD = 0,
+        RESTART = 1,
+        EASY = 2,
+        MEDIUM = 3,
+        HARD = 4
     }
 
     private const int GRID_SIZE = 9;
