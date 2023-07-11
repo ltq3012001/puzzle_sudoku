@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53393feb85e406d45b791f447b3bdd66, type: 3}
   m_Name: ColorTheme
   m_EditorClassIdentifier: 
+  ThemeMainColor: {r: 1, g: 1, b: 0.9294118, a: 1}
+  ButtonColor: {r: 0, g: 0.43921572, b: 0.6627451, a: 1}
+  ContentBackground: {r: 1, g: 1, b: 0.9607843, a: 1}
+  SelectedStateColor: {r: 0, g: 0.28627452, b: 0.43529415, a: 1}
   CellColor: {r: 1, g: 1, b: 0.9764151, a: 1}
   SelectedCellColor: {r: 0.6650944, g: 0.8883649, b: 1, a: 1}
   HighlightCorrectCellColor: {r: 0.8820755, g: 0.96069187, b: 1, a: 1}

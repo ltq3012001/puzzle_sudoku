@@ -153,7 +153,6 @@ public class GameManager : MonoBehaviour
 
     private void RestartCurrentLevel()
     {
-
         hasGameFinished = false;
         cells = new Cell[GRID_SIZE, GRID_SIZE];
         selectedCell = null;
@@ -181,7 +180,7 @@ public class GameManager : MonoBehaviour
         timer = 0;
         adTimer = 0;
         hintRemain = 1;
-
+        Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Difficulty"), out difficulty);
         PlayerPrefs.SetInt("Life", life);
         PlayerPrefs.SetInt("HintRemain", hintRemain);
         PlayerPrefs.SetInt("SelectedCellRow", -1);
@@ -248,7 +247,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
-        Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Level"), out difficulty);
+        Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Difficulty"), out difficulty);
         life = PlayerPrefs.GetInt("Life");
         hintRemain = PlayerPrefs.GetInt("HintRemain");
         timer = PlayerPrefs.GetFloat("Timer");

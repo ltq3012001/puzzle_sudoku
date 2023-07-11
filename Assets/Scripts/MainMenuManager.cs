@@ -15,31 +15,25 @@ public class MainMenuManager : MonoBehaviour
     }
 
     private MainMenuState _currentState;
-
+    [SerializeField] private ThemeColor _themeColor;
     [SerializeField] private Animator _sceneTransitionAnimator;
+    [SerializeField] private Camera _camera;
     [Header("Button Image")]
     [Space]
     [Header("Top Bar")]
-    [SerializeField] private Image _optionButtonImg;
-    [SerializeField] private Image _themeButtonImg;
+    [SerializeField] private Button _optionButton;
+    [SerializeField] private Button _themeButton;
 
     [Header("Menu Scene - Play button group")]
-    [SerializeField] private Image _resumeButtonImg;
-    [SerializeField] private Image _easyButtonImg;
-    [SerializeField] private Image _mediumButtonImg;
-    [SerializeField] private Image _hardButtonImg;
-
+    [SerializeField] private Button _resumeButton;
+    [SerializeField] private Button _easyButton;
+    [SerializeField] private Button _mediumButton;
+    [SerializeField] private Button _hardButton;
 
     [Header("Bottom Bar")]
-    [SerializeField] private Image _mainButtonImg;
-    [SerializeField] private Image _statisticsButtonImg;
-    [SerializeField] private Image _storeButtonImg;
     [SerializeField] private Button _mainButton;
     [SerializeField] private Button _statisticButton;
     [SerializeField] private Button _storeButton;
-
-    [SerializeField] private Color _buttonThemeColor;
-    [SerializeField] private Color _currentStateButtonThemeColor;
 
     private const float OPEN_SCENE_TIME = 1f;
     private const float CLOSE_SCENE_TIME = 0.84f;
@@ -49,10 +43,6 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject _storeScene;
     [SerializeField] private GameObject _statisticsScene;
 
-    [SerializeField] private Animator _mainSceneAnimator;
-    [SerializeField] private Animator _storeSceneAnimator;
-    [SerializeField] private Animator _statisticSceneAnimator;
-
     private GameObject _currentScene;
     private Animator _currentSceneAnimator;
 
@@ -60,8 +50,29 @@ public class MainMenuManager : MonoBehaviour
     private void Start()
     {
         _currentState = MainMenuState.Main;
-        _mainButtonImg.color = _currentStateButtonThemeColor;
-        LoadScene(_mainScene, _mainSceneAnimator);
+        _mainButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _statisticButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _storeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+
+        _camera.backgroundColor = _themeColor.ThemeMainColor;
+
+        _optionButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _themeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+
+        _resumeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _easyButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _mediumButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _hardButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+
+        string level = PlayerPrefs.GetString("Difficulty", string.Empty);
+        if(level != string.Empty)
+        {
+            _resumeButton.interactable = false;
+        }
+
+        SelectSceneButton(_currentState);
+
+        LoadScene(_mainScene);
     }
     private void Update()
     {
@@ -88,6 +99,8 @@ public class MainMenuManager : MonoBehaviour
         _mainButton.interactable = false;
         _storeButton.interactable = false;
         _statisticButton.interactable = false;
+        _optionButton.interactable = false;
+        _themeButton.interactable = false;
     }
 
     private void EnableBottomBarButton()
@@ -95,6 +108,8 @@ public class MainMenuManager : MonoBehaviour
         _mainButton.interactable = true;
         _storeButton.interactable = true;
         _statisticButton.interactable = true;
+        _optionButton.interactable = true;
+        _themeButton.interactable = true;
     }
 
     private IEnumerator LoadGameScene()
@@ -104,22 +119,49 @@ public class MainMenuManager : MonoBehaviour
         SceneManager.LoadScene(1);
     }
 
-    private IEnumerator CloseCurrentScene(GameObject scene, Animator animator)
+    private void CloseCurrentScene(GameObject scene)
     {
         DisableBottomBarButton();
-        _currentSceneAnimator.SetTrigger("CloseScene");
-        yield return new WaitForSeconds(CLOSE_SCENE_TIME);
         _currentScene.SetActive(false);
         _currentScene = null;
-        _currentSceneAnimator = null;
-        LoadScene(scene, animator);
+        LoadScene(scene);
     }
-    private void LoadScene(GameObject scene, Animator animator)
+    private void LoadScene(GameObject scene)
     {
         _currentScene = scene;
-        _currentSceneAnimator = animator;
         _currentScene.SetActive(true);
         EnableBottomBarButton();
+    }
+
+    private void SelectSceneButton(MainMenuState state)
+    {
+        switch (state)
+        {
+            case MainMenuState.Main:
+                {
+                    _mainButton.GetComponent<Image>().color = _themeColor.SelectedStateColor;
+
+                    _statisticButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    _storeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    break;
+                }
+            case MainMenuState.Statistics:
+                {
+                    _statisticButton.GetComponent<Image>().color = _themeColor.SelectedStateColor;
+
+                    _mainButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    _storeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    break;
+                }
+            case MainMenuState.Store:
+                {
+                    _storeButton.GetComponent<Image>().color = _themeColor.SelectedStateColor;
+
+                    _statisticButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    _mainButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    break;
+                }
+        }
     }
 
     public void OnResumeButtonPressed()
@@ -166,12 +208,8 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
         _currentState = MainMenuState.Main;
-        //First change another button to default color
-        _storeButtonImg.color = _buttonThemeColor;
-        _statisticsButtonImg.color = _buttonThemeColor;
-        //Then change current state button to current state color
-        _mainButtonImg.color = _currentStateButtonThemeColor;
-        StartCoroutine(CloseCurrentScene(_mainScene, _mainSceneAnimator));
+        SelectSceneButton(_currentState);
+        CloseCurrentScene(_mainScene);
     }
 
     public void OnStatisticButtonPressed()
@@ -182,12 +220,8 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
         _currentState = MainMenuState.Statistics;
-        //First change another button to default color
-        _mainButtonImg.color = _buttonThemeColor;
-        _storeButtonImg.color = _buttonThemeColor;
-        //Then change current state button to current state color
-        _statisticsButtonImg.color = _currentStateButtonThemeColor;
-        StartCoroutine(CloseCurrentScene(_statisticsScene, _statisticSceneAnimator));
+        SelectSceneButton(_currentState);
+        CloseCurrentScene(_statisticsScene);
     }
 
     public void OnStoreButtonPressed()
@@ -198,12 +232,8 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
         _currentState = MainMenuState.Store;
-        //First change another button to default color
-        _mainButtonImg.color = _buttonThemeColor;
-        _statisticsButtonImg.color = _buttonThemeColor;
-        //Then change current state button to current state color
-        _storeButtonImg.color = _currentStateButtonThemeColor;
-        StartCoroutine(CloseCurrentScene(_storeScene, _storeSceneAnimator));
+        SelectSceneButton(_currentState);
+        CloseCurrentScene(_storeScene);
     }
 
 

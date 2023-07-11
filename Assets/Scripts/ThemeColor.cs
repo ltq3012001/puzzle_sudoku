@@ -1,11 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "ColorTheme", menuName = "Data/ColorTheme", order = 1)]
 
 public class ThemeColor : ScriptableObject
 {
+    [Header("General")]
+    public Color ThemeMainColor;
+    public Color ButtonColor;
+
+    [Header("Main Menu")]
+    public Color ContentBackground;
+    public Color SelectedStateColor;
+
+
+    [Header("Game Scene")]
+
     //CellColor
     public Color CellColor;
     public Color SelectedCellColor;
