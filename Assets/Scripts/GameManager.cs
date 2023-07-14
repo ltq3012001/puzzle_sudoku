@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using TMPro;
-using Unity.Burst.CompilerServices;
 using Unity.Mathematics;
-using UnityEditor.Presets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -24,6 +21,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text _timeText;
     [SerializeField] private TMP_Text _lifeText;
     [SerializeField] private TMP_Text _difficultyText;
+    [SerializeField] private Button[] _inputButton;
 
     //Note
     [SerializeField] private TMP_Text _noteModeNotiText;
@@ -37,6 +35,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Image _undoButtonImg;
 
     [SerializeField] private GameObject _gameOverPopupPrefabs;
+    [SerializeField] private GameObject _gameWonPoupPrefabs;
     [SerializeField] private GameObject _canvas;
 
     private GameObject currentPopup;
@@ -63,12 +62,18 @@ public class GameManager : MonoBehaviour
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("NewPuzzleLevel"), out difficulty);
         SpawnCell(difficulty);
     }
+
     private void Update()
     {
-        timer += Time.deltaTime;
-        _timeText.text = string.Format("{0:00}:{1:00}", math.round(timer / 60), math.round(timer % 60));
+        if (!hasGameFinished)
+        {
+            timer += Time.deltaTime;
+            _timeText.text = string.Format("{0:00}:{1:00}", math.round(timer / 60), math.round(timer % 60));
+        }
 
         if (hasGameFinished || !Input.GetMouseButton(0)) return;
+
+
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 mousePos2D = new Vector2(mousePos.x, mousePos.y);
@@ -85,6 +90,9 @@ public class GameManager : MonoBehaviour
         }
 
     }
+
+    //Game Flow
+
     private void SpawnCell(Generator.DifficultyLevel difficultyLevel)
     {
         hasGameFinished = false;
@@ -106,6 +114,7 @@ public class GameManager : MonoBehaviour
             CreateNewLevel(difficultyLevel);
         }
     }
+
     private void CreateNewLevel(Generator.DifficultyLevel level)
     {
         int[,] tempGrid = Generator.GeneratePuzzle(level);
@@ -132,6 +141,9 @@ public class GameManager : MonoBehaviour
         adTimer = 0;
         hintRemain = 1;
         difficulty = level;
+        int gameStart = PlayerPrefs.GetInt(string.Format("GameStart_{0}", difficulty.ToString()), 0);
+        gameStart++;
+        PlayerPrefs.SetInt(string.Format("GameStart_{0}", difficulty.ToString()), gameStart);
         PlayerPrefs.SetString("Difficulty", level.ToString());
         PlayerPrefs.SetInt("Life", life);
         PlayerPrefs.SetInt("HintRemain", hintRemain);
@@ -305,31 +317,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ShowUIValue()
+    private void GameOver()
     {
-        _difficultyText.text = difficulty.ToString();
-        _lifeText.text = string.Format("{0} / 3", life);
-        if (isNoteMode)
-        {
-            _noteModeImg.color = _themeColor.NotiBoxColor;
-            _noteModeNotiText.color = _themeColor.NotiBoxColor;
-            _noteModeNotiText.text = "ON";
-        }
-        else
-        {
-            _noteModeImg.color = _themeColor.DisableNotiColor;
-            _noteModeNotiText.color = _themeColor.DisableNotiColor;
-            _noteModeNotiText.text = "OFF";
-        }
-        if (hintRemain > 0)
-        {
-            _hintNotiText.text = hintRemain.ToString();
-        }
-        else
-        {
-            _hintNotiText.text = "AD";
-        }
+        ShowUIValue();
+
+        currentPopup = GameObject.Instantiate(_gameOverPopupPrefabs, _canvas.transform);
+        currentPopup.GetComponent<GameOverPopup>().Initialize(this, difficulty);
     }
+
+    private void GameWin()
+    {
+        ShowUIValue();
+        bool isNewRecord = SaveStatistics();
+
+        currentPopup = GameObject.Instantiate(_gameWonPoupPrefabs, _canvas.transform);
+        currentPopup.GetComponent<GameWinPopup>().Initialize(this, difficulty, timer, life, isNewRecord);
+    }
+
+
+    //UI Function
+
     private void ResetGrid()
     {
         for (int i = 0; i < GRID_SIZE; i++)
@@ -370,6 +377,98 @@ public class GameManager : MonoBehaviour
         cells[currentRow, currentCol].Select();
     }
 
+    private void ShowUIValue()
+    {
+        HideInput();
+        if (hasGameFinished)
+        {
+            for (int i = 0; i < GRID_SIZE; i++)
+            {
+                for (int j = 0; j < GRID_SIZE; j++)
+                {
+                    cells[i, j].UpdateWin();
+                }
+            }
+            return;
+        }
+
+        _difficultyText.text = difficulty.ToString();
+        _lifeText.text = string.Format("{0} / 3", life);
+        if (isNoteMode)
+        {
+            _noteModeImg.color = _themeColor.NotiBoxColor;
+            _noteModeNotiText.color = _themeColor.NotiBoxColor;
+            _noteModeNotiText.text = "ON";
+        }
+        else
+        {
+            _noteModeImg.color = _themeColor.DisableNotiColor;
+            _noteModeNotiText.color = _themeColor.DisableNotiColor;
+            _noteModeNotiText.text = "OFF";
+        }
+        if (hintRemain > 0)
+        {
+            _hintNotiText.text = hintRemain.ToString();
+        }
+        else
+        {
+            _hintNotiText.text = "AD";
+        }
+    }
+
+    private void HideInput()
+    {
+        int[] inputArray = new int[9];
+        for(int i = 0; i < inputArray.Length; i++)
+        {
+            inputArray[i] = 0;
+        }
+        for(int i =0; i< GRID_SIZE; i++)
+        {
+            for(int j = 0;j < GRID_SIZE; j++)
+            {
+                if (cells[i,j].Value!=0 && !cells[i,j].IsIncorrect)
+                {
+                    inputArray[cells[i, j].Value - 1]++;
+                }
+            }
+        }
+        for(int i =0; i< inputArray.Length; i++)
+        {
+            if (inputArray[i] ==9)
+            {
+                _inputButton[i].interactable = false;
+                _inputButton[i].GetComponentInChildren<TMP_Text>().color = _themeColor.HideNoteTextColor;
+            }
+        }
+    }
+
+    //Game Logic
+
+    private void UpdateCellValue(int value)
+    {
+        if (selectedCell.Value == value) return;
+        lastUpdatedCell.Add(selectedCell);
+        lastUpdatedCellValue.Add(selectedCell.Value);
+
+        selectedCell.UpdateValue(value);
+        Highlight();
+        if (!IsValid(selectedCell, cells))
+        {
+            DecreaseLife();
+        }else
+        {
+
+            CheckWin();
+        }
+        ShowUIValue();
+    }
+
+    private void UpdateNoteValue(int value)
+    {
+        selectedCell.UpdateNoteValue(value);
+    }
+
     private bool IsValid(Cell cell, Cell[,] cells)
     {
         int row = cell.Row;
@@ -406,44 +505,13 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    private void CheckWin()
-    {
-        for (int i = 0; i < GRID_SIZE; i++)
-        {
-            for (int j = 0; j < GRID_SIZE; j++)
-            {
-                if (cells[i, j].Value == 0 || cells[i, j].IsIncorrect) return;
-            }
-        }
-        hasGameFinished = true;
-
-        for (int i = 0; i < GRID_SIZE; i++)
-        {
-            for (int j = 0; j < GRID_SIZE; j++)
-            {
-                cells[i, j].UpdateWin();
-            }
-        }
-    }
-
     private void DecreaseLife()
     {
         life--;
         if (life == 0)
         {
             GameOver();
-        }        
-    }
-
-    private void GameOver()
-    {
-        Debug.Log("Gameover");
-        ShowUIValue();
-        Generator.DifficultyLevel level = Generator.DifficultyLevel.EASY;
-        Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Difficulty"), out difficulty);
-
-        currentPopup = GameObject.Instantiate(_gameOverPopupPrefabs, _canvas.transform);
-        currentPopup.GetComponent<GameOverPopup>().Initialized(this, difficulty);
+        }
     }
 
     private void DeleteLastUpdateCellKey()
@@ -459,26 +527,42 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("LastUpdatedCellCount", lastIndex - 1);
     }
 
-    private void UpdateCellValue(int value)
+    private void CheckWin()
     {
-        if (selectedCell.Value == value) return;
-        lastUpdatedCell.Add(selectedCell);
-        lastUpdatedCellValue.Add(selectedCell.Value);
-
-        selectedCell.UpdateValue(value);
-        Highlight();
-        if (!IsValid(selectedCell, cells))
+        for (int i = 0; i < GRID_SIZE; i++)
         {
-            DecreaseLife();
+            for (int j = 0; j < GRID_SIZE; j++)
+            {
+                if (cells[i, j].Value == 0 || cells[i, j].IsIncorrect) return;
+            }
         }
-        CheckWin();
-        ShowUIValue();
+        hasGameFinished = true;
+        GameWin();
     }
 
-    private void UpdateNoteValue(int value)
+    private bool SaveStatistics()
     {
-        selectedCell.UpdateNoteValue(value);
+        bool isNewRecord = false;
+        int gameWon = PlayerPrefs.GetInt(string.Format("GameWon_{0}", difficulty.ToString()), 0);
+        gameWon++;
+        PlayerPrefs.SetInt(string.Format("GameWon_{0}", difficulty.ToString()), gameWon);
+        float highTimer = PlayerPrefs.GetFloat(string.Format("HighTimer_{0}", difficulty.ToString()), 0f);
+        if (timer < highTimer || highTimer == 0f)
+        {
+            PlayerPrefs.SetFloat(string.Format("GameWon_{0}", difficulty.ToString()), timer);
+            isNewRecord = true;
+        }
+        if(life ==3)
+        {
+            int perfectGame = PlayerPrefs.GetInt(string.Format("PerfectGame_{0}", difficulty.ToString()), 0);
+            perfectGame++;
+            PlayerPrefs.SetInt(string.Format("PerfectGame_{0}", difficulty.ToString()), perfectGame);
+        }
+        return isNewRecord;
     }
+
+
+    //Scene Manager
 
     private IEnumerator ReloadCurrentScene()
     {
@@ -486,15 +570,11 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(1);
     }
 
-    public void EraseCellValue()
+    private IEnumerator LoadMainMenuScene()
     {
-        if (hasGameFinished || selectedCell == null) return;
-        if (!selectedCell.IsLocked)
-        {
-            if (selectedCell.Value == 0) return;
-            selectedCell.UpdateValue(0);
-            Highlight();
-        }
+        _sceneTransitionAnimator.SetTrigger("LoadScene");
+        yield return new WaitForSeconds(1f);
+        SceneManager.LoadScene(0);
     }
 
     public void InputButtonPressed(int value)
@@ -510,6 +590,19 @@ public class GameManager : MonoBehaviour
             {
                 UpdateCellValue(value);
             }
+        }
+    }
+
+    //Feature Button Group
+
+    public void EraseCellValue()
+    {
+        if (hasGameFinished || selectedCell == null) return;
+        if (!selectedCell.IsLocked)
+        {
+            if (selectedCell.Value == 0) return;
+            selectedCell.UpdateValue(0);
+            Highlight();
         }
     }
 
@@ -555,9 +648,10 @@ public class GameManager : MonoBehaviour
         ShowUIValue();
     }
 
+    //Game Over Popup
+
     public void OnSecondChancePressed()
     {
-        Debug.Log("OnSecondChancePressed");
         life++;
         Destroy(currentPopup);
         currentPopup = null;
@@ -566,7 +660,6 @@ public class GameManager : MonoBehaviour
 
     public void OnRestartThisGamePressed()
     {
-        Debug.Log("OnRestartThisGamePressed");
         DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.RESTART);
         Destroy(currentPopup);
         currentPopup = null;
@@ -575,41 +668,14 @@ public class GameManager : MonoBehaviour
 
     public void OnStartNewGamePressed()
     {
-        Debug.Log("OnStartNewGamePressed");
-        Generator.DifficultyLevel level = currentPopup.GetComponent<GameOverPopup>().difficultyLevel;
+        Generator.DifficultyLevel level = currentPopup.GetComponent<EndGamePopup>().difficultyLevel;
         Destroy(currentPopup);
         currentPopup = null;
         DataManager.SaveNewPuzzleLevel(level);
         StartCoroutine(ReloadCurrentScene());
     }
 
-    public void OnNextLevelPressed()
-    {
-        GameOverPopup popup = currentPopup.GetComponent<GameOverPopup>();
-        if (popup.difficultyLevel < Generator.DifficultyLevel.HARD)
-        {
-            popup.difficultyLevel++;
-        }
-        else
-        {
-            popup.difficultyLevel = Generator.DifficultyLevel.EASY;
-        }
-        popup.ReloadUIValue();
-    }
-
-    public void OnPreviousLevelPressed()
-    {
-        GameOverPopup popup = currentPopup.GetComponent<GameOverPopup>();
-        if (popup.difficultyLevel > Generator.DifficultyLevel.EASY)
-        {
-            popup.difficultyLevel--;
-        }
-        else
-        {
-            popup.difficultyLevel = Generator.DifficultyLevel.HARD;
-        }
-        popup.ReloadUIValue();
-    }
+    //Top Bar Button
 
     public void ExitGame()
     {
@@ -617,10 +683,4 @@ public class GameManager : MonoBehaviour
         StartCoroutine(LoadMainMenuScene());
     }
 
-    IEnumerator LoadMainMenuScene()
-    {
-        _sceneTransitionAnimator.SetTrigger("LoadScene");
-        yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene(0);
-    }
 }
