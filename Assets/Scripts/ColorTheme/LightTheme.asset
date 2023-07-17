@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53393feb85e406d45b791f447b3bdd66, type: 3}
+  m_Name: LightTheme
+  m_EditorClassIdentifier: 
+  ThemeMainColor: {r: 0.9764706, g: 0.9607843, b: 0.90588236, a: 1}
+  ButtonColor: {r: 0.654902, g: 0.44705883, b: 0.49019608, a: 1}
+  ContentBackground: {r: 0.92941177, g: 0.85882354, b: 0.78039217, a: 1}
+  SelectedStateColor: {r: 0.49056602, g: 0.26610893, b: 0.31254837, a: 1}
+  CellColor: {r: 0.97647065, g: 0.9607844, b: 0.9058824, a: 1}
+  SelectedCellColor: {r: 0.9245283, g: 0.82330763, b: 0.71084017, a: 1}
+  HighlightCorrectCellColor: {r: 0.9528302, g: 0.8910902, b: 0.8224902, a: 1}
+  WrongCellColor: {r: 0.990566, g: 0.630785, b: 0.63383406, a: 1}
+  LockedTextColor: {r: 0.2924528, g: 0.12829298, b: 0.16285296, a: 1}
+  UnlockedTextColor: {r: 0.4901961, g: 0.26666668, b: 0.3137255, a: 1}
+  WrongTextColor: {r: 1, g: 0, b: 0, a: 1}
+  NoteTextColor: {r: 0.9716981, g: 0.73504573, b: 0.47209862, a: 1}
+  HideNoteTextColor: {r: 0, g: 0, b: 0, a: 0}
+  NotiBackgroundColor: {r: 0.97647065, g: 0.9607844, b: 0.9058824, a: 1}
+  NotiBoxColor: {r: 0.4901961, g: 0.26666668, b: 0.3137255, a: 1}
+  DisableNotiColor: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 1}

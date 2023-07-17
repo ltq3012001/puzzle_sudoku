@@ -5,7 +5,6 @@ using UnityEngine;
 public class SubGrid : MonoBehaviour
 {
     [SerializeField] public List<Cell> cells;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -16,5 +15,10 @@ public class SubGrid : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void Initialize(Color color)
+    {
+        this.GetComponent<SpriteRenderer>().color = color;
     }
 }

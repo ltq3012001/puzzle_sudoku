@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
+using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -64,9 +65,17 @@ public class MainMenuManager : MonoBehaviour
         _themeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
 
         _resumeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _resumeButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
+
         _easyButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _easyButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
+
         _mediumButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _mediumButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
+
         _hardButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+        _hardButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
+
 
         string level = PlayerPrefs.GetString("Difficulty", string.Empty);
         if(level != string.Empty)
@@ -112,7 +121,7 @@ public class MainMenuManager : MonoBehaviour
             float time = PlayerPrefs.GetFloat(string.Format("HighTimer_{0}", difficuly.ToString()), 0);
             string timeString = string.Format("{0:00}:{1:00}", math.round(time / 60), math.round(time % 60));
             GameObject statisticContent = GameObject.Instantiate(_statisticsContentPrefabs, _statisticsContentCanvas.transform);
-            statisticContent.GetComponent<StatisticContent>().Initialize(difficuly, gamePlayed, gameWon, winRate, perfectGame, timeString);
+            statisticContent.GetComponent<StatisticContent>().Initialize(difficuly, gamePlayed, gameWon, winRate, perfectGame, timeString, _themeColor);
         }
     }
 

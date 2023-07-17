@@ -25,18 +25,33 @@ public class GameManager : MonoBehaviour
 
     //Note
     [SerializeField] private TMP_Text _noteModeNotiText;
-    [SerializeField] private Image _noteModeImg;
-    private bool isNoteMode;
+    [SerializeField] private Image _noteModeInside;
+    [SerializeField] private Image _noteModeBorder;
 
+    [SerializeField] private TMP_Text _noteButtonText;
+    [SerializeField] private Image _noteButton;
+    private bool isNoteMode;
     //Hint
     [SerializeField] private TMP_Text _hintNotiText;
+    [SerializeField] private Image _hintModeInside;
+    [SerializeField] private Image _hintModeBorder;
 
+    [SerializeField] private TMP_Text _hintButtonText;
+    [SerializeField] private Image _hintButton;
     //Undo
-    [SerializeField] private Image _undoButtonImg;
+    [SerializeField] private TMP_Text _undoText;
+    [SerializeField] private Image _undoButton;
+    //Erase
+    [SerializeField] private TMP_Text _eraseText;
+    [SerializeField] private Image _eraseButton;
 
     [SerializeField] private GameObject _gameOverPopupPrefabs;
     [SerializeField] private GameObject _gameWonPoupPrefabs;
     [SerializeField] private GameObject _canvas;
+    [SerializeField] private SpriteRenderer _backGround;
+    [SerializeField] private Image _optionButton;
+    [SerializeField] private Image _mainMenuButton;
+
 
     private GameObject currentPopup;
 
@@ -61,6 +76,35 @@ public class GameManager : MonoBehaviour
     {
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("NewPuzzleLevel"), out difficulty);
         SpawnCell(difficulty);
+
+        foreach(Button inputButton in _inputButton)
+        {
+            inputButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ButtonColor;
+        }
+        _optionButton.color = _themeColor.ButtonColor;
+        _mainMenuButton.color = _themeColor.ButtonColor;
+
+        _noteModeBorder.color = _themeColor.ButtonColor;
+        _noteModeInside.color = _themeColor.ThemeMainColor;
+        _noteModeNotiText.color = _themeColor.ButtonColor;
+
+        _noteButtonText.color = _themeColor.ButtonColor;
+        _noteButton.color = _themeColor.ButtonColor;
+
+        _hintModeBorder.color = _themeColor.ButtonColor;
+        _hintModeInside.color = _themeColor.ThemeMainColor;
+        _hintNotiText.color = _themeColor.ButtonColor;
+
+        _hintButtonText.color = _themeColor.ButtonColor;
+        _hintButton.color = _themeColor.ButtonColor;
+
+        _undoButton.color = _themeColor.ButtonColor;
+        _undoText.color = _themeColor.ButtonColor;
+
+        _eraseButton.color = _themeColor.ButtonColor;
+        _eraseText.color = _themeColor.ButtonColor;
+
+        _backGround.color = _themeColor.ButtonColor;
     }
 
     private void Update()
@@ -122,6 +166,7 @@ public class GameManager : MonoBehaviour
         {
             Vector3 spawnPos = _startPos + i % 3 * _offsetX * Vector3.right + i / 3 * _offsetY * Vector3.up;
             SubGrid subGrid = Instantiate(_subGridPrefabs, spawnPos, Quaternion.identity);
+            subGrid.Initialize(_themeColor.ContentBackground);
             List<Cell> subGridCells = subGrid.cells;
             int startRow = (i / 3) * 3;
             int startCol = (i % 3) * 3;
@@ -395,13 +440,13 @@ public class GameManager : MonoBehaviour
         _lifeText.text = string.Format("{0} / 3", life);
         if (isNoteMode)
         {
-            _noteModeImg.color = _themeColor.NotiBoxColor;
+            _noteModeBorder.color = _themeColor.NotiBoxColor;
             _noteModeNotiText.color = _themeColor.NotiBoxColor;
             _noteModeNotiText.text = "ON";
         }
         else
         {
-            _noteModeImg.color = _themeColor.DisableNotiColor;
+            _noteModeBorder.color = _themeColor.DisableNotiColor;
             _noteModeNotiText.color = _themeColor.DisableNotiColor;
             _noteModeNotiText.text = "OFF";
         }
