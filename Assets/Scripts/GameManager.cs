@@ -141,9 +141,7 @@ public class GameManager : MonoBehaviour
         adTimer = 0;
         hintRemain = 1;
         difficulty = level;
-        int gameStart = PlayerPrefs.GetInt(string.Format("GameStart_{0}", difficulty.ToString()), 0);
-        gameStart++;
-        PlayerPrefs.SetInt(string.Format("GameStart_{0}", difficulty.ToString()), gameStart);
+
         PlayerPrefs.SetString("Difficulty", level.ToString());
         PlayerPrefs.SetInt("Life", life);
         PlayerPrefs.SetInt("HintRemain", hintRemain);
@@ -320,6 +318,7 @@ public class GameManager : MonoBehaviour
     private void GameOver()
     {
         ShowUIValue();
+        SaveStatistics(false);
 
         currentPopup = GameObject.Instantiate(_gameOverPopupPrefabs, _canvas.transform);
         currentPopup.GetComponent<GameOverPopup>().Initialize(this, difficulty);
@@ -328,7 +327,7 @@ public class GameManager : MonoBehaviour
     private void GameWin()
     {
         ShowUIValue();
-        bool isNewRecord = SaveStatistics();
+        bool isNewRecord = SaveStatistics(true);
 
         currentPopup = GameObject.Instantiate(_gameWonPoupPrefabs, _canvas.transform);
         currentPopup.GetComponent<GameWinPopup>().Initialize(this, difficulty, timer, life, isNewRecord);
@@ -540,24 +539,34 @@ public class GameManager : MonoBehaviour
         GameWin();
     }
 
-    private bool SaveStatistics()
+    private bool SaveStatistics(bool isWon)
     {
         bool isNewRecord = false;
-        int gameWon = PlayerPrefs.GetInt(string.Format("GameWon_{0}", difficulty.ToString()), 0);
-        gameWon++;
-        PlayerPrefs.SetInt(string.Format("GameWon_{0}", difficulty.ToString()), gameWon);
-        float highTimer = PlayerPrefs.GetFloat(string.Format("HighTimer_{0}", difficulty.ToString()), 0f);
-        if (timer < highTimer || highTimer == 0f)
+        int gameStart = PlayerPrefs.GetInt(string.Format("GameStart_{0}", difficulty.ToString()), 0);
+        gameStart++;
+        PlayerPrefs.SetInt(string.Format("GameStart_{0}", difficulty.ToString()), gameStart);
+        if (isWon)
         {
-            PlayerPrefs.SetFloat(string.Format("GameWon_{0}", difficulty.ToString()), timer);
-            isNewRecord = true;
+            int gameWon = PlayerPrefs.GetInt(string.Format("GameWon_{0}", difficulty.ToString()), 0);
+            gameWon++;
+            PlayerPrefs.SetInt(string.Format("GameWon_{0}", difficulty.ToString()), gameWon);
+
+            float highTimer = PlayerPrefs.GetFloat(string.Format("HighTimer_{0}", difficulty.ToString()), 0f);
+            if (timer < highTimer || highTimer == 0f)
+            {
+                PlayerPrefs.SetFloat(string.Format("HighTimer_{0}", difficulty.ToString()), timer);
+                isNewRecord = true;
+            }
+            if (life == 3)
+            {
+                int perfectGame = PlayerPrefs.GetInt(string.Format("PerfectGame_{0}", difficulty.ToString()), 0);
+                perfectGame++;
+                PlayerPrefs.SetInt(string.Format("PerfectGame_{0}", difficulty.ToString()), perfectGame);
+            }
+            PlayerPrefs.DeleteKey("Difficulty");
         }
-        if(life ==3)
-        {
-            int perfectGame = PlayerPrefs.GetInt(string.Format("PerfectGame_{0}", difficulty.ToString()), 0);
-            perfectGame++;
-            PlayerPrefs.SetInt(string.Format("PerfectGame_{0}", difficulty.ToString()), perfectGame);
-        }
+        
+        
         return isNewRecord;
     }
 

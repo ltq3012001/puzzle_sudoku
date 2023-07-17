@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -43,6 +44,9 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject _storeScene;
     [SerializeField] private GameObject _statisticsScene;
 
+    [SerializeField] private GameObject _statisticsContentPrefabs;
+    [SerializeField] private GameObject _statisticsContentCanvas;
+
     private GameObject _currentScene;
     private Animator _currentSceneAnimator;
 
@@ -67,8 +71,10 @@ public class MainMenuManager : MonoBehaviour
         string level = PlayerPrefs.GetString("Difficulty", string.Empty);
         if(level != string.Empty)
         {
-            _resumeButton.interactable = false;
+            _resumeButton.interactable = true;
         }
+
+        LoadStatisticContent();
 
         SelectSceneButton(_currentState);
 
@@ -92,6 +98,22 @@ public class MainMenuManager : MonoBehaviour
     private void CallThemePopup()
     {
 
+    }
+
+    private void LoadStatisticContent()
+    {
+        for(Generator.DifficultyLevel difficuly = Generator.DifficultyLevel.EASY; difficuly <= Generator.DifficultyLevel.HARD; difficuly++)
+        {
+            int gamePlayed = PlayerPrefs.GetInt(string.Format("GameStart_{0}", difficuly.ToString()), 0);
+            int gameWon = PlayerPrefs.GetInt(string.Format("GameWon_{0}", difficuly.ToString()), 0);
+            int winRate = (int)math.round(gameWon *100/ gamePlayed);
+            int perfectGame = PlayerPrefs.GetInt(string.Format("PerfectGame_{0}", difficuly.ToString()), 0);
+
+            float time = PlayerPrefs.GetFloat(string.Format("HighTimer_{0}", difficuly.ToString()), 0);
+            string timeString = string.Format("{0:00}:{1:00}", math.round(time / 60), math.round(time % 60));
+            GameObject statisticContent = GameObject.Instantiate(_statisticsContentPrefabs, _statisticsContentCanvas.transform);
+            statisticContent.GetComponent<StatisticContent>().Initialize(difficuly, gamePlayed, gameWon, winRate, perfectGame, timeString);
+        }
     }
 
     private void DisableBottomBarButton()

@@ -70,6 +70,7 @@
     <Compile Include="Assets\Scripts\Popup.cs" />
     <Compile Include="Assets\Scripts\SubGrid.cs" />
     <Compile Include="Assets\Scripts\DataManager.cs" />
+    <Compile Include="Assets\Scripts\StatisticContent.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
   </ItemGroup>
   <ItemGroup>
