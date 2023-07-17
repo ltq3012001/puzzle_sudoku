@@ -107,7 +107,7 @@ public class Solver
             return true;
         }
 
-        for (int value = 1; value < BOARD_SIZE; value++)
+        for (int value = 1; value <= BOARD_SIZE; value++)
         {
             if (IsValid(board, row, col, value))
             {

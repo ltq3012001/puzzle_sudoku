@@ -38,9 +38,6 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private TMP_Text _hintButtonText;
     [SerializeField] private Image _hintButton;
-    //Undo
-    [SerializeField] private TMP_Text _undoText;
-    [SerializeField] private Image _undoButton;
     //Erase
     [SerializeField] private TMP_Text _eraseText;
     [SerializeField] private Image _eraseButton;
@@ -58,8 +55,6 @@ public class GameManager : MonoBehaviour
     private bool hasGameFinished;
     private Cell[,] cells;
     [SerializeField] private Cell selectedCell;
-    private List<Cell> lastUpdatedCell;
-    private List<int> lastUpdatedCellValue;
 
 
     private const int GRID_SIZE = 9;
@@ -74,9 +69,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("NewPuzzleLevel"), out difficulty);
-        SpawnCell(difficulty);
-
         foreach(Button inputButton in _inputButton)
         {
             inputButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ButtonColor;
@@ -98,13 +90,17 @@ public class GameManager : MonoBehaviour
         _hintButtonText.color = _themeColor.ButtonColor;
         _hintButton.color = _themeColor.ButtonColor;
 
-        _undoButton.color = _themeColor.ButtonColor;
-        _undoText.color = _themeColor.ButtonColor;
-
         _eraseButton.color = _themeColor.ButtonColor;
         _eraseText.color = _themeColor.ButtonColor;
 
         _backGround.color = _themeColor.ButtonColor;
+        _lifeText.color = _themeColor.ButtonColor;
+        _difficultyText.color = _themeColor.ButtonColor;
+        _timeText.color = _themeColor.ButtonColor;
+
+        Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("NewPuzzleLevel"), out difficulty);
+        SpawnCell(difficulty);
+
     }
 
     private void Update()
@@ -142,9 +138,6 @@ public class GameManager : MonoBehaviour
         hasGameFinished = false;
         cells = new Cell[GRID_SIZE, GRID_SIZE];
         selectedCell = null;
-        lastUpdatedCell = null;
-        lastUpdatedCellValue = new List<int>();
-        lastUpdatedCell = new List<Cell>();
         if (difficultyLevel == Generator.DifficultyLevel.RELOAD)
         {
             GetCurrentLevel();
@@ -192,17 +185,6 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("HintRemain", hintRemain);
         PlayerPrefs.SetInt("SelectedCellRow", -1);
         PlayerPrefs.SetInt("SelectedCellCol", -1);
-        int listCount = PlayerPrefs.GetInt("LastUpdateCellCount", -1);
-        if (listCount != -1)
-        {
-            for (int i = 0; i < listCount; i++)
-            {
-                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellRow_{0}", i));
-                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellCol_{0}", i));
-                PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellValue_{0}", i));
-            }
-            PlayerPrefs.DeleteKey("LastUpdateCellCount");
-        }
         ShowUIValue();
     }
 
@@ -211,9 +193,6 @@ public class GameManager : MonoBehaviour
         hasGameFinished = false;
         cells = new Cell[GRID_SIZE, GRID_SIZE];
         selectedCell = null;
-        lastUpdatedCell = null;
-        lastUpdatedCellValue = new List<int>();
-        lastUpdatedCell = new List<Cell>();
         for (int i = 0; i < GRID_SIZE; i++)
         {
             Vector3 spawnPos = _startPos + i % 3 * _offsetX * Vector3.right + i / 3 * _offsetY * Vector3.up;
@@ -288,20 +267,7 @@ public class GameManager : MonoBehaviour
         int selectedCellCol = PlayerPrefs.GetInt("SelectedCellCol", -1);
 
         bool isReset = false;
-        int lastUpdateCellCount = PlayerPrefs.GetInt("LastUpdatedCellCount", -1);
-        if (lastUpdateCellCount != -1)
-        {
-            for (int count = 0; count < lastUpdateCellCount; count++)
-            {
-                int lastUpdateCellRow = PlayerPrefs.GetInt(string.Format("LastUpdatedCellRow_{0}", count), -1);
-                int lastUpdateCellCol = PlayerPrefs.GetInt(string.Format("LastUpdatedCellCol_{0}", count), -1);
-                if (lastUpdateCellRow != -1 && lastUpdateCellCol != -1)
-                {
-                    lastUpdatedCell.Add(cells[lastUpdateCellRow, lastUpdateCellCol]);
-                    lastUpdatedCellValue.Add(PlayerPrefs.GetInt(string.Format("LastUpdatedCellValue_{0}", count), 0));
-                }
-            }
-        }
+        
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Difficulty"), out difficulty);
         life = PlayerPrefs.GetInt("Life");
         hintRemain = PlayerPrefs.GetInt("HintRemain");
@@ -342,17 +308,6 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("Life", life);
         PlayerPrefs.SetInt("HintRemain", hintRemain);
         PlayerPrefs.SetFloat("Timer", timer);
-        if (lastUpdatedCell != null)
-        {
-            int listCount = lastUpdatedCell.Count;
-            PlayerPrefs.SetInt("LastUpdatedCellCount", listCount);
-            for (int i = 0; i < listCount; i++)
-            {
-                PlayerPrefs.SetInt(string.Format("LastUpdatedCellRow_{0}", i), lastUpdatedCell[i].Row);
-                PlayerPrefs.SetInt(string.Format("LastUpdatedCellCol_{0}", i), lastUpdatedCell[i].Col);
-                PlayerPrefs.SetInt(string.Format("LastUpdatedCellValue_{0}", i), lastUpdatedCellValue[i]);
-            }
-        }
         if (selectedCell != null)
         {
             PlayerPrefs.SetInt("SelectedCellRow", selectedCell.Row);
@@ -492,17 +447,16 @@ public class GameManager : MonoBehaviour
     private void UpdateCellValue(int value)
     {
         if (selectedCell.Value == value) return;
-        lastUpdatedCell.Add(selectedCell);
-        lastUpdatedCellValue.Add(selectedCell.Value);
 
         selectedCell.UpdateValue(value);
         Highlight();
         if (!IsValid(selectedCell, cells))
         {
             DecreaseLife();
-        }else
+        }
+        else
         {
-
+            selectedCell.IsLocked = true;
             CheckWin();
         }
         ShowUIValue();
@@ -556,19 +510,6 @@ public class GameManager : MonoBehaviour
         {
             GameOver();
         }
-    }
-
-    private void DeleteLastUpdateCellKey()
-    {
-        int lastIndex = lastUpdatedCellValue.Count - 1;
-        lastUpdatedCell.RemoveAt(lastIndex);
-        lastUpdatedCellValue.RemoveAt(lastIndex);
-
-        PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellRow_{0}", lastIndex));
-        PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellCol_{0}", lastIndex));
-        PlayerPrefs.DeleteKey(string.Format("LastUpdatedCellValue_{0}", lastIndex));
-
-        PlayerPrefs.SetInt("LastUpdatedCellCount", lastIndex - 1);
     }
 
     private void CheckWin()
@@ -681,18 +622,6 @@ public class GameManager : MonoBehaviour
             }
             hintRemain--;
             ShowUIValue();
-        }
-    }
-
-    public void UndoButtonPressed()
-    {
-        if (hasGameFinished || selectedCell == null) return;
-        if (!selectedCell.IsLocked && lastUpdatedCell.Count > 0)
-        {
-            selectedCell = lastUpdatedCell[lastUpdatedCell.Count - 1];
-            selectedCell.UpdateValue(lastUpdatedCellValue[lastUpdatedCellValue.Count - 1]);
-            DeleteLastUpdateCellKey();
-            Highlight();
         }
     }
 

@@ -140,7 +140,7 @@ public class Cell : MonoBehaviour
             _valueText.text = Value.ToString();
             if(noteValues.Count> 0)
             {
-                foreach (int noteValue in noteValues.ToString())
+                foreach (int noteValue in noteValues)
                 {
                     HideNoteValue(noteValue);
                 }
