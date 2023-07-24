@@ -66,6 +66,7 @@
     <Compile Include="Assets\Scripts\GameWinPopup.cs" />
     <Compile Include="Assets\Scripts\EndGamePopup.cs" />
     <Compile Include="Assets\Scripts\ThemeColor.cs" />
+    <Compile Include="Assets\Scripts\AudioManager.cs" />
     <Compile Include="Assets\Scripts\Cell.cs" />
     <Compile Include="Assets\Scripts\Popup.cs" />
     <Compile Include="Assets\Scripts\SubGrid.cs" />

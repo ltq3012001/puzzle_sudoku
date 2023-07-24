@@ -9,7 +9,11 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private ThemeColor _themeColor;
+    [SerializeField] private ThemeColor _darkThemeColor;
+    [SerializeField] private ThemeColor _lightThemeColor;
+    private ThemeColor currentThemeColor;
+
+    [SerializeField] private Camera _camera;
 
     [SerializeField] private Animator _sceneTransitionAnimator;
 
@@ -69,34 +73,48 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        foreach(Button inputButton in _inputButton)
+        string themeColor = PlayerPrefs.GetString("ThemeColor", "light");
+        if (themeColor == "light")
         {
-            inputButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ButtonColor;
+            currentThemeColor = _lightThemeColor;
         }
-        _optionButton.color = _themeColor.ButtonColor;
-        _mainMenuButton.color = _themeColor.ButtonColor;
+        else
+        {
+            currentThemeColor = _darkThemeColor;
+        }
 
-        _noteModeBorder.color = _themeColor.ButtonColor;
-        _noteModeInside.color = _themeColor.ThemeMainColor;
-        _noteModeNotiText.color = _themeColor.ButtonColor;
+        foreach (Button inputButton in _inputButton)
+        {
+            inputButton.GetComponentInChildren<TMP_Text>().color = currentThemeColor.ButtonColor;
+        }
 
-        _noteButtonText.color = _themeColor.ButtonColor;
-        _noteButton.color = _themeColor.ButtonColor;
 
-        _hintModeBorder.color = _themeColor.ButtonColor;
-        _hintModeInside.color = _themeColor.ThemeMainColor;
-        _hintNotiText.color = _themeColor.ButtonColor;
+        _optionButton.color = currentThemeColor.ButtonColor;
+        _mainMenuButton.color = currentThemeColor.ButtonColor;
 
-        _hintButtonText.color = _themeColor.ButtonColor;
-        _hintButton.color = _themeColor.ButtonColor;
+        _noteModeBorder.color = currentThemeColor.ButtonColor;
+        _noteModeInside.color = currentThemeColor.ThemeMainColor;
+        _noteModeNotiText.color = currentThemeColor.ButtonColor;
 
-        _eraseButton.color = _themeColor.ButtonColor;
-        _eraseText.color = _themeColor.ButtonColor;
+        _noteButtonText.color = currentThemeColor.ButtonColor;
+        _noteButton.color = currentThemeColor.ButtonColor;
 
-        _backGround.color = _themeColor.ButtonColor;
-        _lifeText.color = _themeColor.ButtonColor;
-        _difficultyText.color = _themeColor.ButtonColor;
-        _timeText.color = _themeColor.ButtonColor;
+        _hintModeBorder.color = currentThemeColor.ButtonColor;
+        _hintModeInside.color = currentThemeColor.ThemeMainColor;
+        _hintNotiText.color = currentThemeColor.ButtonColor;
+
+        _hintButtonText.color = currentThemeColor.ButtonColor;
+        _hintButton.color = currentThemeColor.ButtonColor;
+
+        _eraseButton.color = currentThemeColor.ButtonColor;
+        _eraseText.color = currentThemeColor.ButtonColor;
+
+        _backGround.color = currentThemeColor.ButtonColor;
+        _lifeText.color = currentThemeColor.ButtonColor;
+        _difficultyText.color = currentThemeColor.ButtonColor;
+        _timeText.color = currentThemeColor.ButtonColor;
+
+        _camera.backgroundColor = currentThemeColor.ThemeMainColor;
 
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("NewPuzzleLevel"), out difficulty);
         SpawnCell(difficulty);
@@ -159,7 +177,7 @@ public class GameManager : MonoBehaviour
         {
             Vector3 spawnPos = _startPos + i % 3 * _offsetX * Vector3.right + i / 3 * _offsetY * Vector3.up;
             SubGrid subGrid = Instantiate(_subGridPrefabs, spawnPos, Quaternion.identity);
-            subGrid.Initialize(_themeColor.ContentBackground);
+            subGrid.Initialize(currentThemeColor.ContentBackground);
             List<Cell> subGridCells = subGrid.cells;
             int startRow = (i / 3) * 3;
             int startCol = (i % 3) * 3;
@@ -168,7 +186,7 @@ public class GameManager : MonoBehaviour
                 subGridCells[j].Row = startRow + j / 3;
                 subGridCells[j].Col = startCol + j % 3;
                 int cellValue = tempGrid[subGridCells[j].Row, subGridCells[j].Col];
-                subGridCells[j].Init(cellValue, _themeColor);
+                subGridCells[j].Init(cellValue, currentThemeColor);
                 cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
                 PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), subGridCells[j].Value);
                 PlayerPrefs.SetInt(string.Format("New Puzzle [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), subGridCells[j].Value);
@@ -205,7 +223,7 @@ public class GameManager : MonoBehaviour
                 subGridCells[j].Row = startRow + j / 3;
                 subGridCells[j].Col = startCol + j % 3;
                 int cellValue = PlayerPrefs.GetInt(string.Format("New Puzzle [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col));
-                subGridCells[j].Init(cellValue, _themeColor);
+                subGridCells[j].Init(cellValue, currentThemeColor);
                 cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
                 PlayerPrefs.SetInt(string.Format("Value [{0}],[{1}]", subGridCells[j].Row, subGridCells[j].Col), subGridCells[j].Value);
             }
@@ -259,7 +277,7 @@ public class GameManager : MonoBehaviour
                         noteList.Add(PlayerPrefs.GetInt(string.Format("NoteValue [{0}],[{1}]_{2}", subGridCells[j].Row, subGridCells[j].Col, count)));
                     }
                 }
-                subGridCells[j].Init(cellValue, Convert.ToBoolean(cellIsIncorrect), Convert.ToBoolean(cellIsLocked), noteList, _themeColor);
+                subGridCells[j].Init(cellValue, Convert.ToBoolean(cellIsIncorrect), Convert.ToBoolean(cellIsLocked), noteList, currentThemeColor);
                 cells[subGridCells[j].Row, subGridCells[j].Col] = subGridCells[j];
             }
         }
@@ -267,7 +285,7 @@ public class GameManager : MonoBehaviour
         int selectedCellCol = PlayerPrefs.GetInt("SelectedCellCol", -1);
 
         bool isReset = false;
-        
+
         Enum.TryParse<Generator.DifficultyLevel>(PlayerPrefs.GetString("Difficulty"), out difficulty);
         life = PlayerPrefs.GetInt("Life");
         hintRemain = PlayerPrefs.GetInt("HintRemain");
@@ -395,14 +413,14 @@ public class GameManager : MonoBehaviour
         _lifeText.text = string.Format("{0} / 3", life);
         if (isNoteMode)
         {
-            _noteModeBorder.color = _themeColor.NotiBoxColor;
-            _noteModeNotiText.color = _themeColor.NotiBoxColor;
+            _noteModeBorder.color = currentThemeColor.NotiBoxColor;
+            _noteModeNotiText.color = currentThemeColor.NotiBoxColor;
             _noteModeNotiText.text = "ON";
         }
         else
         {
-            _noteModeBorder.color = _themeColor.DisableNotiColor;
-            _noteModeNotiText.color = _themeColor.DisableNotiColor;
+            _noteModeBorder.color = currentThemeColor.DisableNotiColor;
+            _noteModeNotiText.color = currentThemeColor.DisableNotiColor;
             _noteModeNotiText.text = "OFF";
         }
         if (hintRemain > 0)
@@ -418,26 +436,26 @@ public class GameManager : MonoBehaviour
     private void HideInput()
     {
         int[] inputArray = new int[9];
-        for(int i = 0; i < inputArray.Length; i++)
+        for (int i = 0; i < inputArray.Length; i++)
         {
             inputArray[i] = 0;
         }
-        for(int i =0; i< GRID_SIZE; i++)
+        for (int i = 0; i < GRID_SIZE; i++)
         {
-            for(int j = 0;j < GRID_SIZE; j++)
+            for (int j = 0; j < GRID_SIZE; j++)
             {
-                if (cells[i,j].Value!=0 && !cells[i,j].IsIncorrect)
+                if (cells[i, j].Value != 0 && !cells[i, j].IsIncorrect)
                 {
                     inputArray[cells[i, j].Value - 1]++;
                 }
             }
         }
-        for(int i =0; i< inputArray.Length; i++)
+        for (int i = 0; i < inputArray.Length; i++)
         {
-            if (inputArray[i] ==9)
+            if (inputArray[i] == 9)
             {
                 _inputButton[i].interactable = false;
-                _inputButton[i].GetComponentInChildren<TMP_Text>().color = _themeColor.HideNoteTextColor;
+                _inputButton[i].GetComponentInChildren<TMP_Text>().color = currentThemeColor.HideNoteTextColor;
             }
         }
     }
@@ -551,8 +569,8 @@ public class GameManager : MonoBehaviour
             }
             PlayerPrefs.DeleteKey("Difficulty");
         }
-        
-        
+
+
         return isNewRecord;
     }
 

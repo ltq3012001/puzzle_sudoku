@@ -16,8 +16,14 @@ public class MainMenuManager : MonoBehaviour
         Store
     }
 
+
     private MainMenuState _currentState;
-    [SerializeField] private ThemeColor _themeColor;
+
+    [SerializeField] private ThemeColor _darkThemeColor;
+    [SerializeField] private ThemeColor _lightThemeColor;
+    private ThemeColor currentThemeColor;
+    private string currentThemeColorState;
+
     [SerializeField] private Animator _sceneTransitionAnimator;
     [SerializeField] private Camera _camera;
     [Header("Button Image")]
@@ -37,8 +43,6 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Button _statisticButton;
     [SerializeField] private Button _storeButton;
 
-    private const float OPEN_SCENE_TIME = 1f;
-    private const float CLOSE_SCENE_TIME = 0.84f;
     private const float LOAD_GAME_TIME = 1f;
 
     [SerializeField] private GameObject _mainScene;
@@ -54,31 +58,14 @@ public class MainMenuManager : MonoBehaviour
     //Play Game Button group
     private void Start()
     {
+        currentThemeColorState = PlayerPrefs.GetString("ThemeColor", "light");
+        UpdateThemeColor(currentThemeColorState);
+
         _currentState = MainMenuState.Main;
-        _mainButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-        _statisticButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-        _storeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-
-        _camera.backgroundColor = _themeColor.ThemeMainColor;
-
-        _optionButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-        _themeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-
-        _resumeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-        _resumeButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
-
-        _easyButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-        _easyButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
-
-        _mediumButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-        _mediumButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
-
-        _hardButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-        _hardButton.GetComponentInChildren<TMP_Text>().color = _themeColor.ThemeMainColor;
 
 
         string level = PlayerPrefs.GetString("Difficulty", string.Empty);
-        if(level != string.Empty)
+        if (level != string.Empty)
         {
             _resumeButton.interactable = true;
         }
@@ -94,9 +81,42 @@ public class MainMenuManager : MonoBehaviour
 
     }
 
-    private void UpdateThemeColor()
+    private void UpdateThemeColor(string theme)
     {
+        switch (theme)
+        {
+            case "light":
+                {
+                    currentThemeColor = _lightThemeColor;
+                    break;
+                }
+            case "dark":
+                {
+                    currentThemeColor = _darkThemeColor;
+                    break;
+                }
+        }
+        PlayerPrefs.SetString("ThemeColor", theme);
+        _mainButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        _statisticButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        _storeButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
 
+        _camera.backgroundColor = currentThemeColor.ThemeMainColor;
+
+        _optionButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        _themeButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+
+        _resumeButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        _resumeButton.GetComponentInChildren<TMP_Text>().color = currentThemeColor.ThemeMainColor;
+
+        _easyButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        _easyButton.GetComponentInChildren<TMP_Text>().color = currentThemeColor.ThemeMainColor;
+
+        _mediumButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        _mediumButton.GetComponentInChildren<TMP_Text>().color = currentThemeColor.ThemeMainColor;
+
+        _hardButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        _hardButton.GetComponentInChildren<TMP_Text>().color = currentThemeColor.ThemeMainColor;
     }
 
     private void CallOptionPopup()
@@ -111,17 +131,17 @@ public class MainMenuManager : MonoBehaviour
 
     private void LoadStatisticContent()
     {
-        for(Generator.DifficultyLevel difficuly = Generator.DifficultyLevel.EASY; difficuly <= Generator.DifficultyLevel.HARD; difficuly++)
+        for (Generator.DifficultyLevel difficuly = Generator.DifficultyLevel.EASY; difficuly <= Generator.DifficultyLevel.HARD; difficuly++)
         {
             int gamePlayed = PlayerPrefs.GetInt(string.Format("GameStart_{0}", difficuly.ToString()), 0);
             int gameWon = PlayerPrefs.GetInt(string.Format("GameWon_{0}", difficuly.ToString()), 0);
-            int winRate = (int)math.round(gameWon *100/ gamePlayed);
+            int winRate = (int)math.round(gameWon * 100 / gamePlayed);
             int perfectGame = PlayerPrefs.GetInt(string.Format("PerfectGame_{0}", difficuly.ToString()), 0);
 
             float time = PlayerPrefs.GetFloat(string.Format("HighTimer_{0}", difficuly.ToString()), 0);
             string timeString = string.Format("{0:00}:{1:00}", math.round(time / 60), math.round(time % 60));
             GameObject statisticContent = GameObject.Instantiate(_statisticsContentPrefabs, _statisticsContentCanvas.transform);
-            statisticContent.GetComponent<StatisticContent>().Initialize(difficuly, gamePlayed, gameWon, winRate, perfectGame, timeString, _themeColor);
+            statisticContent.GetComponent<StatisticContent>().Initialize(difficuly, gamePlayed, gameWon, winRate, perfectGame, timeString, currentThemeColor);
         }
     }
 
@@ -170,26 +190,26 @@ public class MainMenuManager : MonoBehaviour
         {
             case MainMenuState.Main:
                 {
-                    _mainButton.GetComponent<Image>().color = _themeColor.SelectedStateColor;
+                    _mainButton.GetComponent<Image>().color = currentThemeColor.SelectedStateColor;
 
-                    _statisticButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-                    _storeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    _statisticButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+                    _storeButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
                     break;
                 }
             case MainMenuState.Statistics:
                 {
-                    _statisticButton.GetComponent<Image>().color = _themeColor.SelectedStateColor;
+                    _statisticButton.GetComponent<Image>().color = currentThemeColor.SelectedStateColor;
 
-                    _mainButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-                    _storeButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    _mainButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+                    _storeButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
                     break;
                 }
             case MainMenuState.Store:
                 {
-                    _storeButton.GetComponent<Image>().color = _themeColor.SelectedStateColor;
+                    _storeButton.GetComponent<Image>().color = currentThemeColor.SelectedStateColor;
 
-                    _statisticButton.GetComponent<Image>().color = _themeColor.ButtonColor;
-                    _mainButton.GetComponent<Image>().color = _themeColor.ButtonColor;
+                    _statisticButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+                    _mainButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
                     break;
                 }
         }
@@ -226,7 +246,18 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnThemeButtonPressed()
     {
-        CallThemePopup();
+        //CallThemePopup();
+        if (currentThemeColorState == "light")
+        {
+            currentThemeColorState = "dark";
+            UpdateThemeColor(currentThemeColorState);
+        }
+        else
+        {
+            currentThemeColorState = "light";
+            UpdateThemeColor(currentThemeColorState);
+        }
+
     }
 
     //Bottom bar

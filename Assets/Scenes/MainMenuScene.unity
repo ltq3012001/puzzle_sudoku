@@ -376,7 +376,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d999e18fd001334596afc028cae7b97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _themeColor: {fileID: 11400000, guid: 129750eacfb518b48af459aa257d0237, type: 2}
+  _darkThemeColor: {fileID: 11400000, guid: 8723104a658fd2b459441bfb3240a548, type: 2}
+  _lightThemeColor: {fileID: 11400000, guid: 129750eacfb518b48af459aa257d0237, type: 2}
   _sceneTransitionAnimator: {fileID: 5560095193160597248}
   _camera: {fileID: 519420031}
   _optionButton: {fileID: 1572692172}
