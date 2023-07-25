@@ -1,6 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Net.Http.Headers;
+using System.ComponentModel;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
@@ -52,12 +51,21 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private GameObject _statisticsContentPrefabs;
     [SerializeField] private GameObject _statisticsContentCanvas;
 
-    private GameObject _currentScene;
-    private Animator _currentSceneAnimator;
+    [SerializeField] private GameObject _optionPopupPrefab;
+    [SerializeField] private GameObject _canvas;
+    [SerializeField] private AudioClip _selectSound;
 
-    //Play Game Button group
+    private GameObject currentScene;
+    private GameObject currentPopup;
+
+    private bool isPopupOpen;
+
+    private bool isMute;
+
     private void Start()
     {
+        isMute = false;
+        AudioManager.instance.SoundVolume(isMute);
         currentThemeColorState = PlayerPrefs.GetString("ThemeColor", "light");
         UpdateThemeColor(currentThemeColorState);
 
@@ -119,9 +127,18 @@ public class MainMenuManager : MonoBehaviour
         _hardButton.GetComponentInChildren<TMP_Text>().color = currentThemeColor.ThemeMainColor;
     }
 
+    private void PlaySelectSound()
+    {
+        AudioManager.instance.PlaySound(_selectSound);
+    }
+
     private void CallOptionPopup()
     {
-
+        if(!currentPopup)
+        {
+            currentPopup = GameObject.Instantiate(_optionPopupPrefab, _canvas.transform);
+            currentPopup.GetComponent<OptionPopup>().Initialize(this, currentThemeColor, isMute);
+        }
     }
 
     private void CallThemePopup()
@@ -173,14 +190,14 @@ public class MainMenuManager : MonoBehaviour
     private void CloseCurrentScene(GameObject scene)
     {
         DisableBottomBarButton();
-        _currentScene.SetActive(false);
-        _currentScene = null;
+        currentScene.SetActive(false);
+        currentScene = null;
         LoadScene(scene);
     }
     private void LoadScene(GameObject scene)
     {
-        _currentScene = scene;
-        _currentScene.SetActive(true);
+        currentScene = scene;
+        currentScene.SetActive(true);
         EnableBottomBarButton();
     }
 
@@ -217,35 +234,43 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnResumeButtonPressed()
     {
+        PlaySelectSound();
         DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.RELOAD);
         StartCoroutine(LoadGameScene());
     }
 
     public void OnEasyGameButtonPressed()
     {
+        PlaySelectSound();
         DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.EASY);
         StartCoroutine(LoadGameScene());
     }
 
     public void OnMediumGameButtonPressed()
     {
+        PlaySelectSound();
         DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.MEDIUM);
         StartCoroutine(LoadGameScene());
     }
 
     public void OnHardGameButtonPressed()
     {
+        PlaySelectSound();
         DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.HARD);
         StartCoroutine(LoadGameScene());
     }
     //Top bar
     public void OnOptionButtonPressed()
     {
+        PlaySelectSound();
         CallOptionPopup();
     }
 
     public void OnThemeButtonPressed()
     {
+        PlaySelectSound();
+        AudioManager.instance.PlaySound(_selectSound);
+
         //CallThemePopup();
         if (currentThemeColorState == "light")
         {
@@ -264,6 +289,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnMainButtonPressed()
     {
+        PlaySelectSound();
         if (_currentState == MainMenuState.Main)
         {
             Debug.Log("Nothing hapeen");
@@ -276,6 +302,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnStatisticButtonPressed()
     {
+        PlaySelectSound();
         if (_currentState == MainMenuState.Statistics)
         {
             Debug.Log("Nothing hapeen");
@@ -288,6 +315,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OnStoreButtonPressed()
     {
+        PlaySelectSound();
         if (_currentState == MainMenuState.Store)
         {
             Debug.Log("Nothing hapeen");
@@ -298,6 +326,31 @@ public class MainMenuManager : MonoBehaviour
         CloseCurrentScene(_storeScene);
     }
 
+    public void OptionPopup_OnSoundButtonPressed()
+    {
+        isMute = !isMute;
+        AudioManager.instance.SoundVolume(isMute);
+        currentPopup.GetComponent<OptionPopup>().ChangeSoundSprite(isMute);
+    }
 
+    public void OptionPopup_OnRemoveAdButtonPressed()
+    {
+        PlaySelectSound();
+    }
+
+    public void OptionPopup_OnHelMeButtonPressed()
+    {
+        PlaySelectSound();
+    }
+
+    public void OptionPopup_ClosePopup()
+    {
+        PlaySelectSound();
+        if (currentPopup)
+        {
+            Destroy(currentPopup);
+            currentPopup = null;
+        }
+    }
 
 }

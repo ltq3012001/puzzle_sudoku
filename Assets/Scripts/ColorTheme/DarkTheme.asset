@@ -17,8 +17,8 @@ MonoBehaviour:
   ContentBackground: {r: 0.3019608, g: 0.27058825, b: 0.27058825, a: 1}
   SelectedStateColor: {r: 0.5529412, g: 0.38431373, b: 0.38431373, a: 1}
   CellColor: {r: 0.22352943, g: 0.19607845, b: 0.19607845, a: 1}
-  SelectedCellColor: {r: 0.3019608, g: 0.27058825, b: 0.27058825, a: 1}
-  HighlightCorrectCellColor: {r: 0.22352943, g: 0.19607845, b: 0.19607845, a: 1}
+  SelectedCellColor: {r: 0.1509434, g: 0.09754361, b: 0.09754361, a: 1}
+  HighlightCorrectCellColor: {r: 0.1792453, g: 0.13612497, b: 0.13612497, a: 1}
   WrongCellColor: {r: 0.990566, g: 0.3504361, b: 0.35720992, a: 1}
   LockedTextColor: {r: 0.7264151, g: 0.35978106, b: 0.35978106, a: 1}
   UnlockedTextColor: {r: 0.5529412, g: 0.38431376, b: 0.38431376, a: 1}

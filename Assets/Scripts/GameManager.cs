@@ -50,8 +50,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _gameWonPoupPrefabs;
     [SerializeField] private GameObject _canvas;
     [SerializeField] private SpriteRenderer _backGround;
-    [SerializeField] private Image _optionButton;
     [SerializeField] private Image _mainMenuButton;
+
+    [SerializeField] private AudioClip _selectSound;
+    [SerializeField] private AudioClip _popSound;
+    [SerializeField] private AudioClip _buzzSound;
 
 
     private GameObject currentPopup;
@@ -68,7 +71,7 @@ public class GameManager : MonoBehaviour
     private int life;
     private int hintRemain;
     private int adTimer;
-    [SerializeField] private Generator.DifficultyLevel difficulty;
+    private Generator.DifficultyLevel difficulty;
 
 
     private void Start()
@@ -88,8 +91,6 @@ public class GameManager : MonoBehaviour
             inputButton.GetComponentInChildren<TMP_Text>().color = currentThemeColor.ButtonColor;
         }
 
-
-        _optionButton.color = currentThemeColor.ButtonColor;
         _mainMenuButton.color = currentThemeColor.ButtonColor;
 
         _noteModeBorder.color = currentThemeColor.ButtonColor;
@@ -142,6 +143,7 @@ public class GameManager : MonoBehaviour
             && tempCell != selectedCell
             )
         {
+            AudioManager.instance.PlaySound(_selectSound);
             ResetGrid();
             selectedCell = tempCell;
             Highlight();
@@ -470,10 +472,12 @@ public class GameManager : MonoBehaviour
         Highlight();
         if (!IsValid(selectedCell, cells))
         {
+            AudioManager.instance.PlaySound(_buzzSound);
             DecreaseLife();
         }
         else
         {
+            AudioManager.instance.PlaySound(_popSound);
             selectedCell.IsLocked = true;
             CheckWin();
         }
@@ -482,6 +486,8 @@ public class GameManager : MonoBehaviour
 
     private void UpdateNoteValue(int value)
     {
+        AudioManager.instance.PlaySound(_popSound);
+
         selectedCell.UpdateNoteValue(value);
     }
 
@@ -610,6 +616,8 @@ public class GameManager : MonoBehaviour
 
     public void EraseCellValue()
     {
+        AudioManager.instance.PlaySound(_popSound);
+
         if (hasGameFinished || selectedCell == null) return;
         if (!selectedCell.IsLocked)
         {
@@ -621,6 +629,8 @@ public class GameManager : MonoBehaviour
 
     public void HintButtonPressed()
     {
+        AudioManager.instance.PlaySound(_popSound);
+
         if (hintRemain > 0)
         {
             if (hasGameFinished || selectedCell == null) return;
@@ -645,6 +655,8 @@ public class GameManager : MonoBehaviour
 
     public void NoteModeButtonPressed()
     {
+        AudioManager.instance.PlaySound(_popSound);
+
         isNoteMode = !isNoteMode;
         ShowUIValue();
     }
@@ -653,6 +665,8 @@ public class GameManager : MonoBehaviour
 
     public void OnSecondChancePressed()
     {
+        AudioManager.instance.PlaySound(_selectSound);
+
         life++;
         Destroy(currentPopup);
         currentPopup = null;
@@ -661,6 +675,8 @@ public class GameManager : MonoBehaviour
 
     public void OnRestartThisGamePressed()
     {
+        AudioManager.instance.PlaySound(_selectSound);
+
         DataManager.SaveNewPuzzleLevel(Generator.DifficultyLevel.RESTART);
         Destroy(currentPopup);
         currentPopup = null;
@@ -669,6 +685,8 @@ public class GameManager : MonoBehaviour
 
     public void OnStartNewGamePressed()
     {
+        AudioManager.instance.PlaySound(_selectSound);
+
         Generator.DifficultyLevel level = currentPopup.GetComponent<EndGamePopup>().difficultyLevel;
         Destroy(currentPopup);
         currentPopup = null;
@@ -680,6 +698,8 @@ public class GameManager : MonoBehaviour
 
     public void ExitGame()
     {
+        AudioManager.instance.PlaySound(_selectSound);
+
         SaveCurrentGameStatus();
         StartCoroutine(LoadMainMenuScene());
     }
