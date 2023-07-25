@@ -55,6 +55,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip _selectSound;
     [SerializeField] private AudioClip _popSound;
     [SerializeField] private AudioClip _buzzSound;
+    [SerializeField] private AudioClip _eraseSound;
+
 
 
     private GameObject currentPopup;
@@ -341,7 +343,7 @@ public class GameManager : MonoBehaviour
         SaveStatistics(false);
 
         currentPopup = GameObject.Instantiate(_gameOverPopupPrefabs, _canvas.transform);
-        currentPopup.GetComponent<GameOverPopup>().Initialize(this, difficulty);
+        currentPopup.GetComponent<GameOverPopup>().Initialize(this, difficulty, currentThemeColor);
     }
 
     private void GameWin()
@@ -350,7 +352,7 @@ public class GameManager : MonoBehaviour
         bool isNewRecord = SaveStatistics(true);
 
         currentPopup = GameObject.Instantiate(_gameWonPoupPrefabs, _canvas.transform);
-        currentPopup.GetComponent<GameWinPopup>().Initialize(this, difficulty, timer, life, isNewRecord);
+        currentPopup.GetComponent<GameWinPopup>().Initialize(this, difficulty, timer, life, isNewRecord, currentThemeColor);
     }
 
 
@@ -616,7 +618,7 @@ public class GameManager : MonoBehaviour
 
     public void EraseCellValue()
     {
-        AudioManager.instance.PlaySound(_popSound);
+        AudioManager.instance.PlaySound(_eraseSound);
 
         if (hasGameFinished || selectedCell == null) return;
         if (!selectedCell.IsLocked)

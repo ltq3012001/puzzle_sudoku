@@ -16,7 +16,7 @@ public class Generator
     private const int GRID_SIZE = 9;
     private const int SUBGRID_SIZE = 3;
     private const int BOARD_SIZE = 9;
-    private const int MAX_SQUARE_REMOVED = 50;
+    private const int MAX_SQUARE_REMOVED = 60;
     private const int MIN_SQUARE_REMOVED = 20;
 
     private static void InitializeGrid(int[,] grid)
@@ -121,12 +121,12 @@ public class Generator
                 }
             case DifficultyLevel.MEDIUM:
                 {
-                    squareToRemove = Random.Range(MIN_SQUARE_REMOVED + 5, MIN_SQUARE_REMOVED + 10);
+                    squareToRemove = Random.Range(MIN_SQUARE_REMOVED + 10, MIN_SQUARE_REMOVED + 20);
                     break;
                 }
             case DifficultyLevel.HARD:
                 {
-                    squareToRemove = Random.Range(MIN_SQUARE_REMOVED + 10, MAX_SQUARE_REMOVED);
+                    squareToRemove = Random.Range(MIN_SQUARE_REMOVED + 20, MAX_SQUARE_REMOVED);
                     break;
                 }
         }

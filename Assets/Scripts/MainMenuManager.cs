@@ -16,7 +16,7 @@ public class MainMenuManager : MonoBehaviour
     }
 
 
-    private MainMenuState _currentState;
+    private MainMenuState currentState;
 
     [SerializeField] private ThemeColor _darkThemeColor;
     [SerializeField] private ThemeColor _lightThemeColor;
@@ -69,7 +69,7 @@ public class MainMenuManager : MonoBehaviour
         currentThemeColorState = PlayerPrefs.GetString("ThemeColor", "light");
         UpdateThemeColor(currentThemeColorState);
 
-        _currentState = MainMenuState.Main;
+        currentState = MainMenuState.Main;
 
 
         string level = PlayerPrefs.GetString("Difficulty", string.Empty);
@@ -77,10 +77,14 @@ public class MainMenuManager : MonoBehaviour
         {
             _resumeButton.interactable = true;
         }
+        else
+        {
+            _resumeButton.interactable = false;
+        }
 
         LoadStatisticContent();
 
-        SelectSceneButton(_currentState);
+        SelectSceneButton(currentState);
 
         LoadScene(_mainScene);
     }
@@ -108,6 +112,18 @@ public class MainMenuManager : MonoBehaviour
         _mainButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
         _statisticButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
         _storeButton.GetComponent<Image>().color = currentThemeColor.ButtonColor;
+        switch(currentState)
+        {
+            case MainMenuState.Main:
+                _mainButton.GetComponent<Image>().color = currentThemeColor.SelectedStateColor;
+                break;
+            case MainMenuState.Statistics:
+                _statisticButton.GetComponent<Image>().color = currentThemeColor.SelectedStateColor;
+                break;
+            case MainMenuState.Store:
+                _storeButton.GetComponent<Image>().color = currentThemeColor.SelectedStateColor;
+                break;
+        }
 
         _camera.backgroundColor = currentThemeColor.ThemeMainColor;
 
@@ -290,39 +306,39 @@ public class MainMenuManager : MonoBehaviour
     public void OnMainButtonPressed()
     {
         PlaySelectSound();
-        if (_currentState == MainMenuState.Main)
+        if (currentState == MainMenuState.Main)
         {
             Debug.Log("Nothing hapeen");
             return;
         }
-        _currentState = MainMenuState.Main;
-        SelectSceneButton(_currentState);
+        currentState = MainMenuState.Main;
+        SelectSceneButton(currentState);
         CloseCurrentScene(_mainScene);
     }
 
     public void OnStatisticButtonPressed()
     {
         PlaySelectSound();
-        if (_currentState == MainMenuState.Statistics)
+        if (currentState == MainMenuState.Statistics)
         {
             Debug.Log("Nothing hapeen");
             return;
         }
-        _currentState = MainMenuState.Statistics;
-        SelectSceneButton(_currentState);
+        currentState = MainMenuState.Statistics;
+        SelectSceneButton(currentState);
         CloseCurrentScene(_statisticsScene);
     }
 
     public void OnStoreButtonPressed()
     {
         PlaySelectSound();
-        if (_currentState == MainMenuState.Store)
+        if (currentState == MainMenuState.Store)
         {
             Debug.Log("Nothing hapeen");
             return;
         }
-        _currentState = MainMenuState.Store;
-        SelectSceneButton(_currentState);
+        currentState = MainMenuState.Store;
+        SelectSceneButton(currentState);
         CloseCurrentScene(_storeScene);
     }
 
