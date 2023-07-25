@@ -1,4 +1,4 @@
-# puzzle_sudoku
+# Sudoku
 # What will have here
 1. A sudoku game with 3 level. Have statistics, save game, dark/light theme
 2. IAP, Admod, Google Play Services
